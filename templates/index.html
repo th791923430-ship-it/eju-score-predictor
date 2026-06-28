@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新领域理工塾 EJU留考合格院校分数预测评估系统</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f3f4f6;
+        }
+        .bg-sakura {
+            background-color: #fef2f2;
+        }
+        .text-sakura {
+            color: #ec4899;
+        }
+        .accent-navy {
+            color: #1e3a8a;
+        }
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+        .border-navy {
+            border-color: #1e3a8a;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+<div id="app" class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white text-slate-800 py-4 px-6 shadow-md flex justify-between items-center border-b border-slate-200">
+        <div class="flex items-center space-x-4">
+            <!-- Brand Logo (or text fallback if image missing) -->
+            <div class="flex items-center justify-center h-12">
+                <img src="/static/logo.png" alt="新领域理工塾" class="h-10 object-contain" onerror="this.outerHTML='<span class=\'text-indigo-700 font-black text-2xl tracking-tight mr-2\'>新领域理工塾</span>'">
+            </div>
+            <div>
+                <h1 class="text-xl font-black text-indigo-900 tracking-wide">EJU留考合格院校分数预测评估系统</h1>
+                <p class="text-xs text-slate-500 font-bold mt-0.5">基于 79,898 条真实历史录取数据构建</p>
+            </div>
+        </div>
+        <div class="hidden md:flex items-center space-x-6 text-sm">
+            <div class="flex items-center space-x-2 text-slate-600 font-bold">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>覆盖大学: 554所</span>
+            </div>
+            <div class="flex items-center space-x-2 text-slate-600 font-bold">
+                <span class="inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span>覆盖专业: 2,216个</span>
+            </div>
+            <div class="bg-slate-100 text-slate-600 font-bold px-3 py-1.5 rounded-md text-xs border border-slate-200">
+                数据周期: 2017 - 2025年
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Panel: Score Entry (4 Cols) -->
+        <section class="lg:col-span-4 bg-white rounded-xl shadow-md p-4 md:p-5 border border-slate-100 flex flex-col space-y-6 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-3">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h2 class="font-bold text-lg text-slate-900 flex items-center">
+                    <i class="fa-solid fa-sliders text-indigo-600 mr-2"></i>
+                    {{ currentLeftPanelMode === 'score_input' ? '输入你的模考/实考成绩' : '设定目标学校/专业' }}
+                </h2>
+                <button @click="resetLeftPanel" class="text-xs text-slate-500 hover:text-indigo-600 transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>{{ currentLeftPanelMode === 'score_input' ? '重置' : '清空目标' }}
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+                <button @click="setLeftPanelMode('score_input')"
+                        :class="currentLeftPanelMode === 'score_input' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+                        class="py-2 px-3 rounded-lg text-sm font-bold transition">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i>输入成绩
+                </button>
+                <button @click="setLeftPanelMode('target_setting')"
+                        :class="currentLeftPanelMode === 'target_setting' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+                        class="py-2 px-3 rounded-lg text-sm font-bold transition">
+                    <i class="fa-solid fa-bullseye mr-1"></i>目标设定
+                </button>
+            </div>
+
+            <div v-if="currentLeftPanelMode === 'score_input'" class="space-y-5">
+                <!-- Track Selection -->
+                <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">文理方向</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button @click="track = 'bunka'" 
+                            :class="track === 'bunka' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'"
+                            class="py-2.5 px-4 rounded-lg border-2 font-bold transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>文科生</span>
+                    </button>
+                    <button @click="track = 'rika'" 
+                            :class="track === 'rika' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'"
+                            class="py-2.5 px-4 rounded-lg border-2 font-bold transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-flask-vial"></i>
+                        <span>理科生</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-3.5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="block text-xs font-semibold text-indigo-700 uppercase tracking-wider">智能推荐筛选</span>
+                    <span class="text-[11px] text-slate-500">筛选越具体，推荐越聚焦</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2.5">
+                    <div class="rounded-lg border border-slate-200/80 bg-white/90 p-2.5">
+                        <label class="text-xs font-bold text-slate-700 flex items-center gap-2 mb-1.5">
+                            <i class="fa-solid fa-map-location-dot text-indigo-500"></i>
+                            学校地区范围
+                        </label>
+                        <select v-model="recommendRegion"
+                                class="block w-full border border-slate-200 rounded-lg py-1.5 px-3 bg-white text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="all">全国范围（不限）</option>
+                            <option value="capital">首都圈（东京/神奈川/千叶/埼玉）</option>
+                            <option value="kanto">关东地区（含首都圈）</option>
+                            <option value="kansai">关西地区</option>
+                            <option value="outside_capital">首都圈以外</option>
+                        </select>
+                    </div>
+
+                    <div class="rounded-lg border border-slate-200/80 bg-white/90 p-2.5">
+                        <label class="text-xs font-bold text-slate-700 flex items-center gap-2 mb-1.5">
+                            <i class="fa-solid fa-building-columns text-indigo-500"></i>
+                            学校性质
+                        </label>
+                        <select v-model="recommendSchoolType"
+                                class="block w-full border border-slate-200 rounded-lg py-1.5 px-3 bg-white text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="all">国公私立（不限）</option>
+                            <option value="public">国公立优先</option>
+                            <option value="private">私立优先</option>
+                        </select>
+                    </div>
+
+                    <div class="rounded-lg border border-slate-200/80 bg-white/90 p-2.5">
+                        <label class="text-xs font-bold text-slate-700 flex items-center gap-2 mb-1.5">
+                            <i class="fa-solid fa-compass-drafting text-indigo-500"></i>
+                            专业方向
+                        </label>
+                        <select v-model="recommendMajorDirection"
+                                class="block w-full border border-slate-200 rounded-lg py-1.5 px-3 bg-white text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option v-for="item in recommendMajorOptions" :key="item.value" :value="item.value">{{ item.label }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EJU Subjects -->
+            <div class="space-y-4 border-t border-slate-100 pt-4">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">EJU科目成绩</span>
+                    <span class="text-xs text-slate-400">滑块或输入具体分数</span>
+                </div>
+
+                <!-- Japanese (400) -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm font-semibold">
+                        <span class="text-slate-700"><i class="fa-solid fa-language text-indigo-500 mr-1.5 w-4 text-center"></i>EJU日语 (不含写作)</span>
+                        <span class="text-indigo-600 font-bold">{{ scores.ja }} / 400</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" v-model.number="scores.ja" min="100" max="400" step="5" class="flex-1 accent-indigo-600">
+                        <input type="number" v-model.number="scores.ja" min="100" max="400" class="w-16 text-center border rounded py-0.5 text-sm font-bold text-slate-700">
+                    </div>
+                </div>
+
+                <!-- Kijutsu (50) -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm font-semibold">
+                        <span class="text-slate-700"><i class="fa-solid fa-pen-nib text-indigo-500 mr-1.5 w-4 text-center"></i>日语记述 (额外参考)</span>
+                        <span class="text-indigo-600 font-bold">{{ scores.kijutsu }} / 50</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" v-model.number="scores.kijutsu" min="0" max="50" step="5" class="flex-1 accent-indigo-600">
+                        <input type="number" v-model.number="scores.kijutsu" min="0" max="50" class="w-16 text-center border rounded py-0.5 text-sm font-bold text-slate-700">
+                    </div>
+                </div>
+
+                <!-- Sogou (for bunka) / Science top 2 (for rika) (200) -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm font-semibold">
+                        <span class="text-slate-700">
+                            <i v-if="track === 'bunka'" class="fa-solid fa-earth-americas text-indigo-500 mr-1.5 w-4 text-center"></i>
+                            <i v-else class="fa-solid fa-atom text-indigo-500 mr-1.5 w-4 text-center"></i>
+                            {{ track === 'bunka' ? '文科综合' : '理综 (选考两科之和)' }}
+                        </span>
+                        <span class="text-indigo-600 font-bold">{{ scores.sub }} / 200</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" v-model.number="scores.sub" min="50" max="200" step="5" class="flex-1 accent-indigo-600">
+                        <input type="number" v-model.number="scores.sub" min="50" max="200" class="w-16 text-center border rounded py-0.5 text-sm font-bold text-slate-700">
+                    </div>
+                </div>
+
+                <!-- Math (200) -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm font-semibold">
+                        <span class="text-slate-700">
+                            <i class="fa-solid fa-calculator text-indigo-500 mr-1.5 w-4 text-center"></i>
+                            {{ track === 'bunka' ? '数学 课程1' : '数学 课程2' }}
+                        </span>
+                        <span class="text-indigo-600 font-bold">{{ scores.math }} / 200</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" v-model.number="scores.math" min="50" max="200" step="5" class="flex-1 accent-indigo-600">
+                        <input type="number" v-model.number="scores.math" min="50" max="200" class="w-16 text-center border rounded py-0.5 text-sm font-bold text-slate-700">
+                    </div>
+                </div>
+            </div>
+
+            <!-- EJU Total Card -->
+            <div class="bg-indigo-900 text-white rounded-xl p-4 flex justify-between items-center shadow-inner relative overflow-hidden">
+                <div class="z-10">
+                    <span class="text-xs uppercase tracking-wider text-indigo-200 font-bold">EJU三科总成绩 (文/理综+数学+日语)</span>
+                    <h3 class="text-3xl font-black mt-1">{{ totalEJUScore }} <span class="text-sm font-normal text-indigo-200">/ 800分</span></h3>
+                </div>
+                <div class="text-indigo-800 text-7xl font-bold absolute -right-4 -bottom-4 select-none pointer-events-none opacity-40">EJU</div>
+            </div>
+
+            <!-- English Scores -->
+            <div class="space-y-3">
+                <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">英语标准化成绩 (选填)</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-600">TOEFL iBT (0-120)</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                <span class="text-xs font-bold text-slate-400">iBT</span>
+                            </div>
+                            <input type="number" v-model.number="scores.ibt" min="0" max="120" placeholder="未报考" class="block w-full pl-9 pr-3 py-2 border rounded-md text-sm text-center font-bold text-slate-700 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-600">TOEIC (0-990)</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                <span class="text-xs font-bold text-slate-400">TOEIC</span>
+                            </div>
+                            <input type="number" v-model.number="scores.toeic" min="0" max="990" placeholder="未报考" class="block w-full pl-12 pr-3 py-2 border rounded-md text-sm text-center font-bold text-slate-700 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- Action Button -->
+                <button @click="onScorePredictSubmit" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>一键预测与智能分析</span>
+                </button>
+            </div>
+
+            <div v-else class="space-y-4">
+                <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-3 text-sm text-indigo-900 leading-relaxed">
+                    <div class="font-bold mb-1">适合没有现成成绩的同学</div>
+                    <div>选择你想冲刺的学校和学部，系统会返回该目标的总分目标区间，以及日语、记述、文综/理综和数学等科目的建议分数范围。</div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">选择目标学校</label>
+                    <div class="relative">
+                        <input type="text"
+                               v-model="targetSchoolSearch"
+                               @input="onTargetSchoolSearch"
+                               @focus="showTargetSchoolSuggestions = true"
+                               @blur="hideTargetSchoolSuggestions"
+                               placeholder="输入学校名称"
+                               class="block w-full border border-slate-200 rounded-lg py-2.5 px-3 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                        <div v-if="showTargetSchoolSuggestions && visibleTargetSchoolSuggestions.length > 0" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                            <button v-for="school in visibleTargetSchoolSuggestions" :key="school"
+                                    type="button"
+                                    @click="chooseTargetSchool(school)"
+                                    class="w-full text-left px-4 py-2 hover:bg-indigo-50 transition text-sm text-slate-800">
+                                {{ school }}
+                            </button>
+                        </div>
+                        <div v-if="showTargetSchoolSuggestions && targetSchoolSearch && filteredTargetSchoolList.length === 0" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg px-4 py-3 text-xs text-slate-500">
+                            未找到匹配的大学，请更换关键词再试。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">选择目标学部/学科</label>
+                        <select v-model="selectedTargetFaculty" :disabled="!selectedTargetSchool" @change="onTargetFacultyChange"
+                            class="block w-full border border-slate-200 rounded-lg py-2.5 px-3 bg-white text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50">
+                        <option value="" disabled>--- 请选择具体学部 ---</option>
+                        <option v-for="fac in targetFacultyList" :key="fac.value" :value="fac.value">{{ fac.label }}</option>
+                    </select>
+                    <div v-if="selectedTargetSchool === '東京大学'" class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 leading-relaxed">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                        東京大学报考规则：文科一类/二类/三类仅文科生可报；理科一类/二类仅理科生可报。
+                        当前方向：<span class="font-bold">{{ targetTrack === 'bunka' ? '文科生' : '理科生' }}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">文理方向</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="targetTrack = 'bunka'"
+                                :class="targetTrack === 'bunka' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'"
+                                class="py-2.5 px-4 rounded-lg border-2 font-bold transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>文科生</span>
+                        </button>
+                        <button @click="targetTrack = 'rika'"
+                                :class="targetTrack === 'rika' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'"
+                                class="py-2.5 px-4 rounded-lg border-2 font-bold transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-flask-vial"></i>
+                            <span>理科生</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button @click="fetchTargetScores"
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition duration-150 shadow-md flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-magic"></i>
+                    <span>生成目标分数设定</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Right Panel: Results & Tools (8 Cols) -->
+        <section class="lg:col-span-8 flex flex-col space-y-6 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2">
+            
+            <!-- Tab Buttons (Score Input Mode) -->
+            <div v-if="currentLeftPanelMode === 'score_input' && hasSubmittedScoreInput" class="bg-white rounded-xl shadow-sm p-1.5 flex space-x-1 border border-slate-100">
+                <button @click="currentTab = 'recommend'" 
+                        :class="currentTab === 'recommend' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'"
+                        class="flex-1 py-3 px-4 rounded-lg font-bold text-sm transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>一键智能择校推荐</span>
+                </button>
+                <button @click="currentTab = 'precision'" 
+                        :class="currentTab === 'precision' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'"
+                        class="flex-1 py-3 px-4 rounded-lg font-bold text-sm transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>特定大学精密录取分析</span>
+                </button>
+            </div>
+
+            <!-- Tab Buttons (Target Setting Mode) -->
+            <div v-else-if="hasSubmittedTargetSetting" class="bg-white rounded-xl shadow-sm p-1.5 flex space-x-1 border border-slate-100">
+                <button @click="currentTargetTab = 'target_overview'"
+                        :class="currentTargetTab === 'target_overview' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'"
+                        class="flex-1 py-3 px-4 rounded-lg font-bold text-sm transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span>目标总分区间</span>
+                </button>
+                <button @click="currentTargetTab = 'target_subjects'"
+                        :class="currentTargetTab === 'target_subjects' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'"
+                        class="flex-1 py-3 px-4 rounded-lg font-bold text-sm transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>各科推荐区间</span>
+                </button>
+            </div>
+
+            <div v-else-if="currentLeftPanelMode === 'score_input'" class="bg-white rounded-xl shadow-md p-12 text-center text-slate-400 border border-slate-100">
+                <i class="fa-solid fa-wand-magic-sparkles text-4xl mb-3 text-slate-300 block"></i>
+                <p class="font-bold text-base text-slate-500">结果将在预测后显示</p>
+                <p class="text-xs mt-1 text-slate-400">请先在左侧点击“一键预测与智能分析”。</p>
+            </div>
+
+            <div v-else class="bg-white rounded-xl shadow-md p-12 text-center text-slate-400 border border-slate-100">
+                <i class="fa-solid fa-bullseye text-4xl mb-3 text-slate-300 block"></i>
+                <p class="font-bold text-base text-slate-500">目标结果将在生成后显示</p>
+                <p class="text-xs mt-1 text-slate-400">请在左侧选择大学与学部后，点击“生成目标分数设定”。</p>
+            </div>
+
+            <!-- Tab 1: Recommendations -->
+            <div v-show="currentLeftPanelMode === 'score_input' && hasSubmittedScoreInput && currentTab === 'recommend'" class="space-y-6">
+                
+                <!-- Recommendation Headers / Tips -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-start space-x-3">
+                    <i class="fa-solid fa-lightbulb text-indigo-600 text-lg mt-0.5"></i>
+                    <div class="text-sm text-indigo-900 leading-relaxed">
+                        <strong class="font-bold">录取概率阶梯说明：</strong> 
+                        系统基于往年录取成绩的分布，将大学划分为三个层级。
+                        <span class="font-bold text-emerald-700">保底校</span>表示你的分数处于历史录取的高分段，通过概率极大；
+                        <span class="font-bold text-amber-600">适中校</span>表示分数与历史录取中位数相匹配，竞争较为稳妥；
+                        <span class="font-bold text-rose-600">冲刺校</span>表示你正处于录取门槛边缘，值得梦想挑战。
+                    </div>
+                </div>
+
+                <!-- Recommendation Groups -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Safety Group -->
+                    <div class="bg-white rounded-xl shadow-md p-4 border-t-4 border-emerald-500 flex flex-col min-h-[500px]">
+                        <h3 class="font-bold text-emerald-800 text-base flex items-center mb-3">
+                            <i class="fa-solid fa-circle-check text-emerald-500 mr-2"></i>
+                            保底推荐院校 ({{ results.safety.length }})
+                        </h3>
+                        <div class="flex-1 overflow-y-auto space-y-3 max-h-[500px] pr-1">
+                            <div v-if="results.safety.length === 0" class="text-center text-slate-400 py-12 text-sm">
+                                <i class="fa-solid fa-ban text-2xl mb-2 block"></i>暂无推荐，请尝试调高分数
+                            </div>
+                            <div v-for="item in results.safety" :key="item.school+item.faculty" 
+                                 class="bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-lg p-3 transition cursor-pointer"
+                                 @click="selectSchoolFromRecommend(item.school, item.faculty)">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-900">{{ item.school }}</h4>
+                                    <span class="text-xs font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ (item.probability * 100).toFixed(0) }}%</span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">{{ item.faculty_display || item.faculty }}</p>
+                                <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
+                                    <span>{{ item.school_rank }} | {{ item.school_type }}</span>
+                                    <span>历史中位数: {{ item.median_score }}分</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Match Group -->
+                    <div class="bg-white rounded-xl shadow-md p-4 border-t-4 border-amber-500 flex flex-col min-h-[500px]">
+                        <h3 class="font-bold text-amber-800 text-base flex items-center mb-3">
+                            <i class="fa-solid fa-shield-halved text-amber-500 mr-2"></i>
+                            适中推荐院校 ({{ results.match.length }})
+                        </h3>
+                        <div class="flex-1 overflow-y-auto space-y-3 max-h-[500px] pr-1">
+                            <div v-if="results.match.length === 0" class="text-center text-slate-400 py-12 text-sm">
+                                <i class="fa-solid fa-ban text-2xl mb-2 block"></i>暂无合适院校
+                            </div>
+                            <div v-for="item in results.match" :key="item.school+item.faculty" 
+                                 class="bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-lg p-3 transition cursor-pointer"
+                                 @click="selectSchoolFromRecommend(item.school, item.faculty)">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-900">{{ item.school }}</h4>
+                                    <span class="text-xs font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded">{{ (item.probability * 100).toFixed(0) }}%</span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">{{ item.faculty_display || item.faculty }}</p>
+                                <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
+                                    <span>{{ item.school_rank }} | {{ item.school_type }}</span>
+                                    <span>历史中位数: {{ item.median_score }}分</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Challenger Group -->
+                    <div class="bg-white rounded-xl shadow-md p-4 border-t-4 border-rose-500 flex flex-col min-h-[500px]">
+                        <h3 class="font-bold text-rose-800 text-base flex items-center mb-3">
+                            <i class="fa-solid fa-circle-up text-rose-500 mr-2"></i>
+                            冲刺推荐院校 ({{ results.challenger.length }})
+                        </h3>
+                        <div class="flex-1 overflow-y-auto space-y-3 max-h-[500px] pr-1">
+                            <div v-if="results.challenger.length === 0" class="text-center text-slate-400 py-12 text-sm">
+                                <i class="fa-solid fa-ban text-2xl mb-2 block"></i>暂无合适院校
+                            </div>
+                            <div v-for="item in results.challenger" :key="item.school+item.faculty" 
+                                 class="bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-lg p-3 transition cursor-pointer"
+                                 @click="selectSchoolFromRecommend(item.school, item.faculty)">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-900">{{ item.school }}</h4>
+                                    <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-1.5 py-0.5 rounded">{{ (item.probability * 100).toFixed(0) }}%</span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">{{ item.faculty_display || item.faculty }}</p>
+                                <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
+                                    <span>{{ item.school_rank }} | {{ item.school_type }}</span>
+                                    <span>历史中位数: {{ item.median_score }}分</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Tab 2: Precision Assessment -->
+            <div v-show="currentLeftPanelMode === 'score_input' && hasSubmittedScoreInput && currentTab === 'precision'" class="space-y-6">
+                
+                <!-- School Selectors -->
+                <div class="bg-white rounded-xl shadow-md p-5 border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">选择报考学校</label>
+                        <div class="relative space-y-2">
+                            <input type="text"
+                                   v-model="schoolSearch"
+                                   @input="onSchoolSearch"
+                                   @focus="showSchoolSuggestions = true"
+                                   @blur="hideSchoolSuggestions"
+                                placeholder="输入学校名称"
+                                   class="block w-full border border-slate-200 rounded-lg py-2.5 px-3 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                            <div v-if="showSchoolSuggestions && visibleSchoolSuggestions.length > 0" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                                <button v-for="school in visibleSchoolSuggestions" :key="school"
+                                        type="button"
+                                        @click="chooseSchool(school)"
+                                        class="w-full text-left px-4 py-2 hover:bg-indigo-50 transition text-sm text-slate-800">
+                                    {{ school }}
+                                </button>
+                            </div>
+                            <div v-if="showSchoolSuggestions && schoolSearch && filteredSchoolList.length === 0" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg px-4 py-3 text-xs text-slate-500">
+                                未找到匹配的大学，请更换关键词再试。
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">选择具体学部/学科</label>
+                        <div class="relative">
+                            <select v-model="selectedFaculty" :disabled="!selectedSchool" @change="onPrecisionSelectionChange"
+                                    class="block w-full border border-slate-200 rounded-lg py-2.5 px-3 bg-white text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50">
+                                <option value="" disabled>--- 请选择具体学部 ---</option>
+                                <option v-for="fac in facultyList" :key="fac.value" :value="fac.value">{{ fac.label }}</option>
+                            </select>
+                            <div v-if="selectedSchool === '東京大学'" class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 leading-relaxed">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                                東京大学报考规则：文科一类/二类/三类仅文科生可报；理科一类/二类仅理科生可报。
+                                当前方向：<span class="font-bold">{{ track === 'bunka' ? '文科生' : '理科生' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 flex items-end">
+                        <button @click="analyzePrecision"
+                                :disabled="!selectedSchool || !selectedFaculty"
+                                class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-lg transition">
+                            合格概率分析
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Prediction Results Dashboard -->
+                <div v-if="hasSubmittedPrecision && precisionResult" class="bg-white rounded-xl shadow-md p-6 border border-slate-100 space-y-6">
+                    
+                    <!-- Header Info -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-4">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="text-2xl font-black text-slate-900">{{ precisionResult.school }}</h3>
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-extrabold px-2.5 py-1 rounded">{{ precisionResult.school_rank }}</span>
+                                <span class="bg-slate-100 text-slate-800 text-xs font-extrabold px-2.5 py-1 rounded">{{ precisionResult.school_type }}</span>
+                            </div>
+                            <p class="text-sm text-slate-600 mt-1 font-semibold">{{ precisionResult.faculty_display || precisionResult.faculty }} （{{ track === 'bunka' ? '文科生' : '理科生' }}方向）</p>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-indigo-50 border border-indigo-100/50 p-2 rounded-lg">
+                            <i class="fa-solid fa-pen-nib text-indigo-500 text-sm"></i>
+                            <span class="text-xs text-indigo-800 font-bold" v-if="precisionResult.stats.avg_kijutsu">
+                                历史记述平均: {{ precisionResult.stats.avg_kijutsu.toFixed(1) }} 分
+                            </span>
+                            <span class="text-xs text-indigo-800 font-bold" v-else>
+                                历史记述平均: 无
+                            </span>
+                            <span class="mx-2 text-indigo-200">|</span>
+                            <i class="fa-solid fa-database text-indigo-500 text-sm"></i>
+                            <span class="text-xs text-indigo-800 font-bold">历史录取库样本数: {{ precisionResult.stats.total_records }} 条</span>
+                        </div>
+                    </div>
+
+                    <!-- Main Metrics: Probability Gauge & Ranges -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                        
+                        <!-- Circular Gauge (5 cols) -->
+                        <div v-if="precisionResult.mode === 'target_setting'" class="md:col-span-4 flex flex-col items-center py-4 bg-emerald-50 rounded-xl border border-emerald-100 shadow-inner">
+                            <span class="text-xs font-bold text-emerald-700 mb-2">目标总分建议区间</span>
+                            <div class="rounded-xl border border-emerald-200 bg-white px-4 py-4 text-center w-full">
+                                <div class="text-2xl font-black text-emerald-700">
+                                    {{ precisionResult.stats.target_range_q1 !== null && precisionResult.stats.target_range_q3 !== null ? precisionResult.stats.target_range_q1.toFixed(0) + ' ~ ' + precisionResult.stats.target_range_q3.toFixed(0) : '--' }}
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">80% 历史合格区间</p>
+                                <div class="mt-3 text-[11px] text-slate-600 leading-relaxed">
+                                    按历史录取分布给出的目标总分区间，适合用来做志愿目标设定与阶段性提分计划。
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="md:col-span-4 flex flex-col items-center py-4 bg-slate-50 rounded-xl border border-slate-100 shadow-inner">
+                            <span class="text-xs font-bold text-slate-500 mb-2">估计合格率</span>
+                            <div class="relative flex items-center justify-center">
+                                <!-- SVG Gauge -->
+                                <svg class="w-36 h-36 transform -rotate-90">
+                                    <circle cx="72" cy="72" r="60" stroke="#e2e8f0" stroke-width="12" fill="transparent" />
+                                    <circle cx="72" cy="72" r="60" :stroke="gaugeColor" stroke-width="12" fill="transparent"
+                                            :stroke-dasharray="376.99" :stroke-dashoffset="376.99 - (376.99 * precisionResult.stats.probability)"
+                                            stroke-linecap="round" class="transition-all duration-1000" />
+                                </svg>
+                                <div class="absolute text-center">
+                                    <h4 class="text-3xl font-black" :style="{ color: gaugeColor }">{{ (precisionResult.stats.probability * 100).toFixed(0) }}%</h4>
+                                    <span class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mt-0.5 block">{{ precisionResult.tier }}层级</span>
+                                </div>
+                            </div>
+                            <span class="text-xs mt-3 px-3 py-1 rounded-full font-bold"
+                                  :class="precisionResult.tier === '保底' ? 'bg-emerald-100 text-emerald-800' : (precisionResult.tier === '适中' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')">
+                                {{ precisionResult.tier === '保底' ? '安全/保底 - 稳如泰山' : (precisionResult.tier === '适中' ? '稳定/适中 - 胜券在握' : '挑战/冲刺 - 拼搏梦想') }}
+                            </span>
+                        </div>
+
+                        <!-- Detailed score positioning (7 cols) -->
+                        <div class="md:col-span-8 space-y-5">
+                            
+                            <!-- Stat indicators -->
+                            <div class="grid grid-cols-4 gap-3 text-center">
+                                <div class="bg-rose-50 border border-rose-100 p-2 rounded-lg">
+                                    <span class="text-[10px] text-rose-700 font-bold block">合格最低分</span>
+                                    <h5 class="text-base font-black text-rose-900">{{ precisionResult.stats.min_passed || '无' }}</h5>
+                                </div>
+                                <div class="col-span-2 bg-indigo-50 border border-indigo-100 p-2 rounded-lg flex flex-col justify-center">
+                                    <span class="text-[10px] text-indigo-700 font-bold block">80% 合格学员推荐分数区间</span>
+                                    <h5 class="text-base font-black text-indigo-900">
+                                        <span v-if="precisionResult.stats.target_range_q1 !== null && precisionResult.stats.target_range_q3 !== null">
+                                            {{ precisionResult.stats.target_range_q1.toFixed(0) }} <span class="text-xs font-normal">~</span> {{ precisionResult.stats.target_range_q3.toFixed(0) }}
+                                        </span>
+                                        <span v-else>--</span>
+                                    </h5>
+                                </div>
+                                <div class="bg-emerald-50 border border-emerald-100 p-2 rounded-lg">
+                                    <span class="text-[10px] text-emerald-700 font-bold block">合格最高分</span>
+                                    <h5 class="text-base font-black text-emerald-900">{{ precisionResult.stats.max_passed || '无' }}</h5>
+                                </div>
+                            </div>
+
+                            <div v-if="precisionResult.mode === 'prediction' && totalGapInfo"
+                                 :class="totalGapInfo.cardClass"
+                                 class="rounded-xl border px-4 py-3">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="text-xs font-bold" :class="totalGapInfo.textClass">总分差距提示</div>
+                                        <div class="text-sm font-semibold text-slate-800 mt-1">{{ totalGapInfo.message }}</div>
+                                    </div>
+                                    <div class="text-xs px-2 py-1 rounded-full font-bold" :class="totalGapInfo.badgeClass">{{ totalGapInfo.badge }}</div>
+                                </div>
+
+                            </div>
+
+                            <div v-if="precisionResult.mode === 'target_setting' && targetPlanBands.length > 0"
+                                 class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div v-for="band in targetPlanBands" :key="band.level" :class="band.cardClass" class="rounded-xl border p-3">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span :class="band.badgeClass" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full">{{ band.level }}</span>
+                                        <span class="text-[10px] text-slate-500">总分目标</span>
+                                    </div>
+                                    <div class="text-lg font-black text-slate-900">{{ band.rangeText }}</div>
+                                    <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">{{ band.advice }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Horizontal Score Bar Chart -->
+                            <div class="space-y-2">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                                    {{ precisionResult.mode === 'target_setting' ? '目标总分区间定位' : '你的总分定位分析' }}
+                                </span>
+                                <div class="bg-slate-100 rounded-lg h-8 relative flex items-center justify-between border border-slate-200 overflow-hidden shadow-inner mt-4">
+                                    <!-- Background bars representing low, mid, high -->
+                                    <div class="absolute inset-y-0 left-0 bg-rose-200/30 w-[40%]"></div>
+                                    <div class="absolute inset-y-0 left-[40%] bg-amber-200/30 w-[35%]"></div>
+                                    <div class="absolute inset-y-0 left-[75%] bg-emerald-200/30 w-[25%]"></div>
+                                    
+                                    <!-- User Score Indicator Line -->
+                                    <div v-if="precisionResult.mode !== 'target_setting'" class="absolute top-0 bottom-0 w-1 bg-indigo-700 shadow-md transition-all duration-1000 z-10"
+                                         :style="{ left: userScorePercentile + '%' }">
+                                        <!-- User score tooltip -->
+                                        <div class="absolute -top-6 -left-12 bg-indigo-700 text-white text-[9px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
+                                            我的分数: {{ totalEJUScore }}分
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Target Score Range Tooltip (rendered above the bar if exists) -->
+                                    <div v-if="precisionResult.stats.target_range_q1 !== null && precisionResult.stats.target_range_q3 !== null" 
+                                         class="absolute -top-6 text-indigo-500 text-[9px] font-bold whitespace-nowrap transition-all duration-1000 z-0"
+                                         :style="{ left: Math.max(5, Math.min(95, ((precisionResult.stats.target_range_q1 - 300) / 500) * 100)) + '%' }">
+                                         80% 合格区间
+                                    </div>
+
+                                    <!-- Historical Median Indicator Line -->
+                                    <div v-if="precisionResult.stats.median_score" 
+                                         class="absolute top-0 bottom-0 w-0.5 bg-slate-500 border-dashed border-l transition-all duration-1000"
+                                         :style="{ left: medianScorePercentile + '%' }">
+                                        <div class="absolute -bottom-5 -left-12 text-slate-500 text-[9px] px-1.5 py-0.5 font-bold whitespace-nowrap">
+                                            中位数: {{ precisionResult.stats.median_score.toFixed(0) }}分
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Target Score Range Indicator Background -->
+                                    <div v-if="precisionResult.stats.target_range_q1 && precisionResult.stats.target_range_q3" 
+                                         class="absolute inset-y-0 bg-indigo-500/20 border-x border-indigo-400/50 transition-all duration-1000 z-0"
+                                         :style="{ 
+                                            left: Math.max(5, Math.min(95, ((precisionResult.stats.target_range_q1 - 300) / 500) * 100)) + '%',
+                                            width: (Math.max(5, Math.min(95, ((precisionResult.stats.target_range_q3 - 300) / 500) * 100)) - Math.max(5, Math.min(95, ((precisionResult.stats.target_range_q1 - 300) / 500) * 100))) + '%'
+                                         }">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Advisor advice paragraph -->
+                            <div class="bg-slate-50 border rounded-xl p-4 flex items-start space-x-2.5">
+                                <i class="fa-solid fa-user-tie text-indigo-500 text-lg mt-0.5"></i>
+                                <div>
+                                    <span class="text-xs font-bold text-slate-500">专业顾问建议:</span>
+                                    <p class="text-xs text-slate-700 leading-relaxed mt-1 font-medium">
+                                        {{ adviceComment }}
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Historical English requirements (TOEFL/TOEIC) if available -->
+                    <div v-if="precisionResult.stats.avg_ibt || precisionResult.stats.avg_toeic" 
+                         class="bg-indigo-50/50 border border-indigo-100/50 rounded-xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-graduation-cap text-indigo-500 text-xl"></i>
+                            <div>
+                                <h6 class="text-xs font-bold text-slate-500">历史合格托福 (平均)</h6>
+                                <p class="text-sm font-black text-indigo-900 mt-0.5">
+                                    {{ precisionResult.stats.avg_ibt ? precisionResult.stats.avg_ibt.toFixed(1) + ' 分' : '无数据' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-globe text-indigo-500 text-xl"></i>
+                            <div>
+                                <h6 class="text-xs font-bold text-slate-500">历史合格托雅 / 托业 (平均)</h6>
+                                <p class="text-sm font-black text-indigo-900 mt-0.5">
+                                    {{ precisionResult.stats.avg_toeic ? precisionResult.stats.avg_toeic.toFixed(1) + ' 分' : '无数据' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="precisionResult.stats.subject_scores && precisionResult.stats.subject_scores.length > 0"
+                         class="bg-white rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">各科分数差距可视化</span>
+                                <p class="text-[11px] text-slate-400 mt-1">以中位合格分和高稳目标分为主，展示你当前各科还差多少。</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div v-for="subject in precisionResult.stats.subject_scores" :key="subject.key" class="rounded-xl border border-slate-100 p-4 bg-slate-50 space-y-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-bold text-slate-800">{{ subject.name }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] text-slate-500">{{ subject.count }} 条合格样本</span>
+                                        <span v-if="precisionResult.mode === 'prediction'" class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="subjectGapVisual(subject).chipClass">
+                                            {{ subjectGapVisual(subject).chipText }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2 text-[11px]">
+                                    <div class="rounded-lg bg-indigo-50 border border-indigo-100 px-2 py-1 text-center">
+                                        <div class="text-indigo-700 font-bold">我的分数</div>
+                                        <div class="text-slate-900 font-black">{{ subjectUserScore(subject.key) !== null ? subjectUserScore(subject.key) : '--' }}</div>
+                                    </div>
+                                    <div class="rounded-lg bg-amber-50 border border-amber-100 px-2 py-1 text-center">
+                                        <div class="text-amber-700 font-bold">中位合格分</div>
+                                        <div class="text-slate-900 font-black">{{ subject.median !== null ? subject.median.toFixed(0) : '--' }}</div>
+                                    </div>
+                                    <div class="rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-1 text-center">
+                                        <div class="text-emerald-700 font-bold">高稳目标分</div>
+                                        <div class="text-slate-900 font-black">{{ subject.p90 !== null ? subject.p90.toFixed(0) : '--' }}</div>
+                                    </div>
+                                </div>
+
+                                <div v-if="subjectHasVisualData(subject)" class="space-y-2">
+                                    <div class="relative">
+                                        <div class="h-3 rounded-full bg-slate-200"></div>
+                                        <div class="absolute top-0 h-3 rounded-full bg-emerald-400/70" :style="subjectRecommendRangeStyle(subject)"></div>
+                                        <div class="absolute -top-1 h-5 w-0.5 bg-amber-600" :style="subjectMedianStyle(subject)"></div>
+                                        <div class="absolute -top-1 h-5 w-0.5 bg-indigo-700" :style="subjectUserStyle(subject)"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[10px] text-slate-500">
+                                        <span>{{ subject.min !== null ? subject.min.toFixed(0) : '--' }}</span>
+                                        <span>{{ subject.max !== null ? subject.max.toFixed(0) : '--' }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-[10px] text-slate-600">
+                                        <span class="inline-flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>推荐带(P10-P90)</span>
+                                        <span class="inline-flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-amber-600"></span>中位分</span>
+                                        <span class="inline-flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-indigo-700"></span>我的分数</span>
+                                    </div>
+                                </div>
+
+                                <div v-if="precisionResult.mode === 'prediction'" class="mt-2 rounded-lg px-2 py-1.5 text-[11px]"
+                                     :class="subjectGapInfo(subject).boxClass">
+                                    <span class="font-bold" :class="subjectGapInfo(subject).textClass">{{ subjectGapInfo(subject).title }}：</span>
+                                    <span class="text-slate-700">{{ subjectGapInfo(subject).message }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historical Distribution Graph -->
+                    <div class="space-y-3">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                            <i class="fa-solid fa-chart-column mr-1"></i>
+                            历史录退分值具体分布图
+                        </span>
+                        <div class="bg-slate-50 border rounded-xl p-3 h-64 relative">
+                            <canvas id="distributionChartScore"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div v-else class="bg-white rounded-xl shadow-md p-16 text-center text-slate-400 border border-slate-100">
+                    <i class="fa-solid fa-map-location-dot text-5xl mb-4 text-slate-300 block"></i>
+                    <p class="font-bold text-base text-slate-500">未开始合格概率分析</p>
+                    <p class="text-xs mt-1 text-slate-400">请先选择大学与学部，然后点击“合格概率分析”按钮。</p>
+                </div>
+
+            </div>
+
+            <!-- Target Setting: Overview Tab -->
+            <div v-show="currentLeftPanelMode === 'target_setting' && hasSubmittedTargetSetting && currentTargetTab === 'target_overview'" class="space-y-6">
+                <div v-if="precisionWarning" class="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-4 py-3 text-sm font-semibold">
+                    <i class="fa-solid fa-circle-exclamation mr-2"></i>{{ precisionWarning }}
+                </div>
+                <div v-if="precisionResult" class="bg-white rounded-xl shadow-md p-6 border border-slate-100 space-y-5">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-4">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="text-2xl font-black text-slate-900">{{ precisionResult.school }}</h3>
+                                <span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-1 rounded">{{ precisionResult.school_rank }}</span>
+                                <span class="bg-slate-100 text-slate-800 text-xs font-extrabold px-2.5 py-1 rounded">{{ precisionResult.school_type }}</span>
+                            </div>
+                            <p class="text-sm text-slate-600 mt-1 font-semibold">{{ precisionResult.faculty_display || precisionResult.faculty }} （{{ targetTrack === 'bunka' ? '文科生' : '理科生' }}方向）</p>
+                        </div>
+                        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-right">
+                            <div class="text-[11px] font-bold text-emerald-700">80% 历史合格区间</div>
+                            <div class="text-xl font-black text-emerald-800">
+                                {{ precisionResult.stats.target_range_q1 !== null && precisionResult.stats.target_range_q3 !== null ? precisionResult.stats.target_range_q1.toFixed(0) + ' ~ ' + precisionResult.stats.target_range_q3.toFixed(0) : '--' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="rounded-xl border border-rose-100 bg-rose-50 p-3 text-center">
+                            <div class="text-[10px] font-bold text-rose-700">合格最低分</div>
+                            <div class="text-xl font-black text-rose-900 mt-1">{{ precisionResult.stats.min_passed || '--' }}</div>
+                        </div>
+                        <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-3 text-center">
+                            <div class="text-[10px] font-bold text-indigo-700">历史中位分</div>
+                            <div class="text-xl font-black text-indigo-900 mt-1">{{ precisionResult.stats.median_score !== null ? precisionResult.stats.median_score.toFixed(0) : '--' }}</div>
+                        </div>
+                        <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-center">
+                            <div class="text-[10px] font-bold text-emerald-700">合格最高分</div>
+                            <div class="text-xl font-black text-emerald-900 mt-1">{{ precisionResult.stats.max_passed || '--' }}</div>
+                        </div>
+                    </div>
+
+                    <div v-if="targetPlanBands.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div v-for="band in targetPlanBands" :key="band.level" :class="band.cardClass" class="rounded-xl border p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span :class="band.badgeClass" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full">{{ band.level }}</span>
+                                <span class="text-[10px] text-slate-500">总分目标</span>
+                            </div>
+                            <div class="text-xl font-black text-slate-900">{{ band.rangeText }}</div>
+                            <p class="text-[11px] text-slate-600 mt-2 leading-relaxed">{{ band.advice }}</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border rounded-xl p-4 flex items-start space-x-2.5">
+                        <i class="fa-solid fa-user-tie text-emerald-600 text-lg mt-0.5"></i>
+                        <div>
+                            <span class="text-xs font-bold text-slate-500">目标设定建议:</span>
+                            <p class="text-xs text-slate-700 leading-relaxed mt-1 font-medium">{{ adviceComment }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="bg-white rounded-xl shadow-md p-16 text-center text-slate-400 border border-slate-100">
+                    <i class="fa-solid fa-bullseye text-5xl mb-4 text-slate-300 block"></i>
+                    <p class="font-bold text-base text-slate-500">未生成目标区间</p>
+                    <p class="text-xs mt-1 text-slate-400">请在左侧选择目标学校、学部后点击“生成目标分数设定”。</p>
+                </div>
+            </div>
+
+            <!-- Target Setting: Subject Ranges Tab -->
+            <div v-show="currentLeftPanelMode === 'target_setting' && hasSubmittedTargetSetting && currentTargetTab === 'target_subjects'" class="space-y-6">
+                <div v-if="precisionWarning" class="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-4 py-3 text-sm font-semibold">
+                    <i class="fa-solid fa-circle-exclamation mr-2"></i>{{ precisionWarning }}
+                </div>
+                <div v-if="precisionResult" class="bg-white rounded-xl shadow-md p-6 border border-slate-100 space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-black text-slate-900">{{ precisionResult.school }} · {{ precisionResult.faculty_display || precisionResult.faculty }}</h3>
+                            <p class="text-xs text-slate-500 mt-1">各科目标基于历史合格者 10%-90% 区间生成，适合制定阶段提分计划。</p>
+                        </div>
+                        <span class="text-xs font-bold text-slate-500">样本：{{ precisionResult.stats.total_records }} 条</span>
+                    </div>
+
+                    <div v-if="precisionResult.stats.subject_scores && precisionResult.stats.subject_scores.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div v-for="subject in precisionResult.stats.subject_scores" :key="subject.key" class="rounded-xl border border-slate-100 p-4 bg-slate-50">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="font-bold text-slate-800">{{ subject.name }}</span>
+                                <span class="text-[10px] text-slate-500">{{ subject.count }} 条合格样本</span>
+                            </div>
+
+                            <div v-if="subjectHasVisualData(subject)" class="space-y-3">
+                                <div class="relative">
+                                    <div class="h-3 rounded-full bg-slate-200"></div>
+                                    <div class="absolute top-0 h-3 rounded-full bg-emerald-400/70" :style="subjectRecommendRangeStyle(subject)"></div>
+
+                                    <div class="absolute -top-1 h-5 w-0.5 bg-indigo-700" :style="subjectMedianStyle(subject)"></div>
+                                    <div class="absolute -top-1 h-5 w-0.5 bg-amber-600" :style="subjectAvgStyle(subject)"></div>
+                                </div>
+
+                                <div class="flex items-center justify-between text-[10px] text-slate-500">
+                                    <span>{{ subject.min.toFixed(0) }}</span>
+                                    <span>{{ subject.max.toFixed(0) }}</span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                    <div class="rounded-lg bg-emerald-50 border border-emerald-100 px-2 py-1">
+                                        <div class="text-emerald-700 font-bold">推荐区间</div>
+                                        <div class="text-slate-800 font-semibold">{{ subject.p10.toFixed(0) }} ~ {{ subject.p90.toFixed(0) }}</div>
+                                    </div>
+                                    <div class="rounded-lg bg-indigo-50 border border-indigo-100 px-2 py-1">
+                                        <div class="text-indigo-700 font-bold">中位/平均</div>
+                                        <div class="text-slate-800 font-semibold">{{ subject.median.toFixed(0) }} / {{ subject.avg.toFixed(0) }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3 text-[10px] text-slate-600">
+                                    <span class="inline-flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>10%-90% 推荐区间</span>
+                                    <span class="inline-flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-indigo-700"></span>中位数</span>
+                                    <span class="inline-flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-amber-600"></span>平均值</span>
+                                </div>
+                            </div>
+
+                            <div v-else class="text-[11px] text-slate-500 bg-white border border-slate-200 rounded-lg px-3 py-2">
+                                该科目历史有效样本不足，暂无法生成可视化推荐区间。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                            <i class="fa-solid fa-chart-column mr-1"></i>
+                            历史录退分值具体分布图
+                        </span>
+                        <div class="bg-slate-50 border rounded-xl p-3 h-64 relative">
+                            <canvas id="distributionChartTarget"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="bg-white rounded-xl shadow-md p-16 text-center text-slate-400 border border-slate-100">
+                    <i class="fa-solid fa-layer-group text-5xl mb-4 text-slate-300 block"></i>
+                    <p class="font-bold text-base text-slate-500">未生成各科目标区间</p>
+                    <p class="text-xs mt-1 text-slate-400">请先在目标设定模式生成该学部的目标结果。</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-xs border-t border-slate-800">
+        <p>© 2026 新领域理工塾 EJU留考合格院校分数预测评估系统. 保留所有权利。</p>
+        <p class="mt-1 text-slate-500">所有录取概率均基于近 8 万条真实录取结果进行统计估算，仅供择校参考。</p>
+    </footer>
+</div>
+
+<script>
+    const { createApp, ref, computed, watch, nextTick } = Vue;
+
+    createApp({
+        setup() {
+            // State
+            const track = ref('bunka'); // For score input mode
+            const targetTrack = ref('bunka'); // For target setting mode
+            const scores = ref({
+                ja: 280,
+                kijutsu: 35,
+                sub: 150,
+                math: 120,
+                ibt: 0,
+                toeic: 0
+            });
+            const currentTab = ref('recommend');
+            const currentTargetTab = ref('target_overview');
+            const currentLeftPanelMode = ref('score_input'); // 'score_input' or 'target_setting'
+            const hasSubmittedScoreInput = ref(false);
+            const hasSubmittedPrecision = ref(false);
+            const hasSubmittedTargetSetting = ref(false);
+            const recommendRegion = ref('all');
+            const recommendSchoolType = ref('all');
+            const recommendMajorDirection = ref('all');
+
+            // Select school index for score input mode
+            const schoolSearch = ref('');
+            const schoolList = ref([]);
+            const selectedSchool = ref('');
+            const facultyList = ref([]);
+            const selectedFaculty = ref('');
+            const rawSchoolIndex = ref({});
+            const showSchoolSuggestions = ref(false);
+
+            // Select school index for target setting mode
+            const targetSchoolSearch = ref('');
+            const CN_TO_JP_CHAR_MAP = {
+                '东': '東',
+                '庆': '慶',
+                '应': '應',
+                '关': '関',
+                '龙': '龍',
+                '泽': '沢',
+                '驹': '駒',
+                '滨': '浜',
+                '冈': '岡',
+                '广': '広',
+                '户': '戸',
+                '滨': '浜',
+                '台': '台',
+                '艺': '芸'
+            };
+
+            const SEARCH_ALIAS_MAP = [
+                { from: '东京', to: '東京' },
+                { from: '东洋', to: '東洋' },
+                { from: '东北', to: '東北' },
+                { from: '庆应', to: '慶應' },
+                { from: '庆应义塾', to: '慶應義塾' },
+                { from: '关东', to: '関東' },
+                { from: '关西', to: '関西' },
+                { from: '关学', to: '関学' },
+                { from: '驹泽', to: '駒沢' },
+                { from: '驹泽', to: '駒澤' },
+                { from: '龙谷', to: '龍谷' },
+                { from: '国学院', to: '國學院' }
+            ];
+
+            const normalizeSearchText = (value) => {
+                if (!value) return '';
+                return String(value)
+                    .toLowerCase()
+                    .replace(/[\u3000\s\(\)\（\）\-\‐\–\—]+/g, '');
+            };
+
+            const applyCharMap = (text, mapObj) => {
+                return Array.from(text).map((ch) => mapObj[ch] || ch).join('');
+            };
+
+            const buildSearchVariants = (value) => {
+                const base = normalizeSearchText(value);
+                if (!base) return [];
+
+                const variants = new Set([base, applyCharMap(base, CN_TO_JP_CHAR_MAP)]);
+
+                SEARCH_ALIAS_MAP.forEach((item) => {
+                    const fromNorm = normalizeSearchText(item.from);
+                    const toNorm = normalizeSearchText(item.to);
+                    Array.from(variants).forEach((variant) => {
+                        if (variant.includes(fromNorm)) {
+                            variants.add(variant.replaceAll(fromNorm, toNorm));
+                        }
+                        if (variant.includes(toNorm)) {
+                            variants.add(variant.replaceAll(toNorm, fromNorm));
+                        }
+                    });
+                });
+
+                return Array.from(variants).filter(Boolean);
+            };
+
+            const schoolMatchesQuery = (school, queryText) => {
+                const queryVariants = buildSearchVariants(queryText);
+                if (!queryVariants.length) {
+                    return true;
+                }
+
+                const schoolVariants = buildSearchVariants(school);
+                return queryVariants.some((queryVariant) => {
+                    return schoolVariants.some((schoolVariant) => schoolVariant.includes(queryVariant));
+                });
+            };
+
+            const filteredTargetSchoolList = computed(() => {
+                if (!targetSchoolSearch.value) {
+                    return schoolList.value;
+                }
+                return schoolList.value.filter((school) => schoolMatchesQuery(school, targetSchoolSearch.value));
+            });
+            const visibleTargetSchoolSuggestions = computed(() => {
+                return filteredTargetSchoolList.value.slice(0, 20);
+            });
+            const selectedTargetSchool = ref('');
+            const targetFacultyList = ref([]);
+            const selectedTargetFaculty = ref('');
+            const showTargetSchoolSuggestions = ref(false);
+
+            const filteredSchoolList = computed(() => {
+                if (!schoolSearch.value) {
+                    return schoolList.value;
+                }
+                return schoolList.value.filter((school) => schoolMatchesQuery(school, schoolSearch.value));
+            });
+
+            const visibleSchoolSuggestions = computed(() => {
+                return filteredSchoolList.value.slice(0, 20);
+            });
+
+            const recommendMajorOptions = computed(() => {
+                if (track.value === 'bunka') {
+                    return [
+                        { value: 'all', label: '文科方向（不限）' },
+                        { value: 'bunka_literature', label: '文学/人文学' },
+                        { value: 'bunka_politics', label: '政治学/法学/公共政策' },
+                        { value: 'bunka_business', label: '经营学/商学' },
+                        { value: 'bunka_economics', label: '经济学' },
+                        { value: 'bunka_liberal_arts', label: '教养/综合文化' },
+                        { value: 'bunka_education', label: '教育学/学校教育' },
+                        { value: 'bunka_language', label: '语言学/外语/日本语教育' }
+                    ];
+                }
+                return [
+                    { value: 'all', label: '理科方向（不限）' },
+                    { value: 'rika_mechanical', label: '机械' },
+                    { value: 'rika_electrical', label: '电气电子' },
+                    { value: 'rika_math', label: '数学/数理' },
+                    { value: 'rika_architecture', label: '建筑/都市' },
+                    { value: 'rika_info', label: '情报/计算机' },
+                    { value: 'rika_medicine', label: '医学/医疗/保健' },
+                    { value: 'rika_pharmacy', label: '药学' },
+                    { value: 'rika_dentistry', label: '齿学' },
+                    { value: 'rika_agri_bio', label: '农学/生物/生命科学' }
+                ];
+            });
+
+            // Prediction results
+            const results = ref({
+                safety: [],
+                match: [],
+                challenger: []
+            });
+            const precisionResult = ref(null);
+            const precisionWarning = ref('');
+
+            // Chartjs instance reference
+            let chartInstance = null;
+
+            // Total EJU Score
+            const totalEJUScore = computed(() => {
+                return scores.value.ja + scores.value.sub + scores.value.math;
+            });
+
+            // Calculate score positions on the horizontal bar
+            const userScorePercentile = computed(() => {
+                const total = totalEJUScore.value;
+                // EJU range usually 300 to 800
+                const percent = ((total - 300) / 500) * 100;
+                return Math.max(5, Math.min(95, percent));
+            });
+
+            const medianScorePercentile = computed(() => {
+                if (!precisionResult.value || !precisionResult.value.stats.median_score) return 0;
+                const median = precisionResult.value.stats.median_score;
+                const percent = ((median - 300) / 500) * 100;
+                return Math.max(5, Math.min(95, percent));
+            });
+
+            const gaugeColor = computed(() => {
+                if (!precisionResult.value) return '#6366f1';
+                const prob = precisionResult.value.stats.probability;
+                if (prob >= 0.8) return '#10b981'; // green
+                if (prob >= 0.5) return '#f59e0b'; // yellow
+                return '#f43f5e'; // rose/red
+            });
+
+            const targetPlanBands = computed(() => {
+                if (!precisionResult.value || precisionResult.value.mode !== 'target_setting') return [];
+                const q1 = precisionResult.value.stats.target_range_q1;
+                const q3 = precisionResult.value.stats.target_range_q3;
+                if (q1 === null || q3 === null) return [];
+
+                const challengerMin = Math.max(300, Math.round(q1 - 30));
+                const challengerMax = Math.max(challengerMin, Math.round(q1 - 1));
+                const matchMin = Math.round(q1);
+                const matchMax = Math.round(q3);
+                const safetyMin = Math.min(800, Math.round(q3 + 1));
+                const safetyMax = Math.min(800, Math.round(q3 + 35));
+
+                return [
+                    {
+                        level: '冲刺线',
+                        rangeText: `${challengerMin} ~ ${challengerMax}`,
+                        advice: '用于试探上限，适合主攻校内考和面试表现。',
+                        cardClass: 'bg-rose-50 border-rose-100',
+                        badgeClass: 'bg-rose-100 text-rose-700'
+                    },
+                    {
+                        level: '主目标线',
+                        rangeText: `${matchMin} ~ ${matchMax}`,
+                        advice: '历史合格密集带，建议作为主要训练区间。',
+                        cardClass: 'bg-amber-50 border-amber-100',
+                        badgeClass: 'bg-amber-100 text-amber-700'
+                    },
+                    {
+                        level: '保底线',
+                        rangeText: `${safetyMin} ~ ${safetyMax}`,
+                        advice: '达到该区间后，整体录取风险将明显下降。',
+                        cardClass: 'bg-emerald-50 border-emerald-100',
+                        badgeClass: 'bg-emerald-100 text-emerald-700'
+                    }
+                ];
+            });
+
+            const targetModeComment = computed(() => {
+                if (!precisionResult.value || precisionResult.value.mode !== 'target_setting') return '';
+                const q1 = precisionResult.value.stats.target_range_q1;
+                const q3 = precisionResult.value.stats.target_range_q3;
+                const median = precisionResult.value.stats.median_score;
+                const totalRecords = precisionResult.value.stats.total_records || (precisionResult.value.stats.passed_count + precisionResult.value.stats.failed_count);
+
+                if (q1 === null || q3 === null) {
+                    return '该目标学部当前可用样本较少，建议同时查看相近学部并结合校内考要求制定计划。';
+                }
+
+                return `基于 ${totalRecords} 条历史样本，该目标学部的核心提分区间为 ${q1.toFixed(0)}~${q3.toFixed(0)} 分${median ? `，中位录取分约 ${median.toFixed(0)} 分` : ''}。建议先把总分推进到主目标线，再强化校内考与面试来提升最终合格稳定性。`;
+            });
+
+            const adviceComment = computed(() => {
+                if (!precisionResult.value) return '';
+                if (precisionResult.value.mode === 'target_setting') {
+                    return targetModeComment.value;
+                }
+                const prob = precisionResult.value.stats.probability;
+                const total = totalEJUScore.value;
+                const median = precisionResult.value.stats.median_score;
+                
+                if (prob >= 0.8) {
+                    return `你的EJU总分 (${total}分) 显著高于该学部历史录取合格者的中位数 (${median}分)。你的硬件条件非常优越，该学部完全可以作为你的核心【保底校】。只要校内考/面试正常发挥，录取概率极大！`;
+                } else if (prob >= 0.5) {
+                    return `你的EJU总分 (${total}分) 与该学部的合格者中位数 (${median}分) 非常接近，属于最具竞争力的核心报考区间。该学部可作为你的优秀【稳妥/适中校】。建议认真备考其校内考小论文或面试，以提高最终合格率。`;
+                } else if (prob >= 0.2) {
+                    return `你的EJU总分 (${total}分) 稍低于该学部历史录取合格者中位数 (${median}分)，录取有一定的挑战性，但仍在历史合格者的录取范围之内。该学部可以作为你的【冲刺校】。建议重点突破英语或备考校内考特长，同时建议搭配其他稳妥和保底学校。`;
+                } else {
+                    return `你的EJU总分 (${total}分) 与该学部历史录取分数有一定差距，作为【极高挑战校】。建议你在日语和文化课上继续提分，或将此校作为梦想志愿尝试，并在志愿单中主要填报其他适中和保底院校。`;
+                }
+            });
+
+            const subjectHasVisualData = (subject) => {
+                if (!subject) return false;
+                const needed = [subject.min, subject.max, subject.p10, subject.p90, subject.median, subject.avg];
+                return needed.every(v => v !== null && v !== undefined) && subject.max > subject.min;
+            };
+
+            const subjectPercent = (subject, value) => {
+                if (!subjectHasVisualData(subject)) return 0;
+                const span = subject.max - subject.min;
+                const raw = ((value - subject.min) / span) * 100;
+                return Math.max(0, Math.min(100, raw));
+            };
+
+            const subjectRecommendRangeStyle = (subject) => {
+                const left = subjectPercent(subject, subject.p10);
+                const right = subjectPercent(subject, subject.p90);
+                const width = Math.max(2, right - left);
+                return {
+                    left: `${left}%`,
+                    width: `${width}%`
+                };
+            };
+
+            const subjectMedianStyle = (subject) => {
+                return {
+                    left: `${subjectPercent(subject, subject.median)}%`
+                };
+            };
+
+            const subjectAvgStyle = (subject) => {
+                return {
+                    left: `${subjectPercent(subject, subject.avg)}%`
+                };
+            };
+
+            const subjectUserStyle = (subject) => {
+                const score = userSubjectScore(subject.key);
+                if (score === null || score === undefined) {
+                    return { left: '0%' };
+                }
+                return {
+                    left: `${subjectPercent(subject, score)}%`
+                };
+            };
+
+            const totalGapInfo = computed(() => {
+                if (!precisionResult.value || precisionResult.value.mode !== 'prediction') return null;
+                const median = precisionResult.value.stats.median_score;
+                const q3 = precisionResult.value.stats.target_range_q3;
+                const total = totalEJUScore.value;
+                if (median === null || q3 === null) {
+                    return {
+                        message: '当前缺少有效历史目标区间，暂无法计算总分差距。',
+                        badge: '无区间',
+                        cardClass: 'bg-slate-50 border-slate-200',
+                        textClass: 'text-slate-600',
+                        badgeClass: 'bg-slate-200 text-slate-700'
+                    };
+                }
+
+                if (total < median) {
+                    const diff = Math.ceil(median - total);
+                    return {
+                        message: `你距离中位合格分还差 ${diff} 分（中位目标 ${median.toFixed(0)} 分）。`,
+                        badge: `差 ${diff} 分`,
+                        cardClass: 'bg-rose-50 border-rose-200',
+                        textClass: 'text-rose-700',
+                        badgeClass: 'bg-rose-100 text-rose-700'
+                    };
+                }
+
+                if (total > q3) {
+                    const diff = Math.ceil(total - q3);
+                    return {
+                        message: `你已高于高稳目标分 ${diff} 分，总分竞争力较强。`,
+                        badge: `高 ${diff} 分`,
+                        cardClass: 'bg-emerald-50 border-emerald-200',
+                        textClass: 'text-emerald-700',
+                        badgeClass: 'bg-emerald-100 text-emerald-700'
+                    };
+                }
+
+                const leftToTop = Math.ceil(q3 - total);
+                return {
+                    message: `你已达到中位合格分，距离高稳目标分还差 ${leftToTop} 分。`,
+                    badge: '达中位',
+                    cardClass: 'bg-amber-50 border-amber-200',
+                    textClass: 'text-amber-700',
+                    badgeClass: 'bg-amber-100 text-amber-700'
+                };
+            });
+
+
+            const userSubjectScore = (subjectKey) => {
+                const key = String(subjectKey || '');
+                const mapping = {
+                    '日本語': scores.value.ja,
+                    '記述': scores.value.kijutsu,
+                    '综合': scores.value.sub,
+                    '数１': scores.value.math,
+                    '数２': scores.value.math
+                };
+
+                if (Object.prototype.hasOwnProperty.call(mapping, key)) {
+                    return mapping[key];
+                }
+
+                return null;
+            };
+
+            const subjectUserScore = (subjectKey) => userSubjectScore(subjectKey);
+
+            const subjectGapInfo = (subject) => {
+                if (!subject || subject.median === null || subject.p90 === null) {
+                    return {
+                        title: '差距',
+                        message: '当前样本不足，暂无法评估。',
+                        boxClass: 'bg-slate-100 border border-slate-200',
+                        textClass: 'text-slate-700'
+                    };
+                }
+
+                const userScore = userSubjectScore(subject.key);
+                if (userScore === null || userScore === undefined) {
+                    return {
+                        title: '差距',
+                        message: '当前未输入该单科成绩，暂无法计算差距。',
+                        boxClass: 'bg-slate-100 border border-slate-200',
+                        textClass: 'text-slate-700'
+                    };
+                }
+
+                if (userScore < subject.median) {
+                    const diff = Math.ceil(subject.median - userScore);
+                    return {
+                        title: '差距',
+                        message: `距离中位合格分还差 ${diff} 分。`,
+                        boxClass: 'bg-rose-50 border border-rose-200',
+                        textClass: 'text-rose-700'
+                    };
+                }
+
+                if (userScore > subject.p90) {
+                    const diff = Math.ceil(userScore - subject.p90);
+                    return {
+                        title: '优势',
+                        message: `高于高稳目标分 ${diff} 分。`,
+                        boxClass: 'bg-emerald-50 border border-emerald-200',
+                        textClass: 'text-emerald-700'
+                    };
+                }
+
+                const diff = Math.ceil(subject.p90 - userScore);
+                return {
+                    title: '状态',
+                    message: `已达到中位分，距离高稳目标还差 ${diff} 分。`,
+                    boxClass: 'bg-amber-50 border border-amber-200',
+                    textClass: 'text-amber-700'
+                };
+            };
+
+            const subjectGapVisual = (subject) => {
+                if (!subject || subject.median === null || subject.p90 === null) {
+                    return {
+                        chipText: '样本不足',
+                        chipClass: 'bg-slate-200 text-slate-700',
+                        medianBarClass: 'bg-slate-400',
+                        p90BarClass: 'bg-slate-400'
+                    };
+                }
+
+                const userScore = userSubjectScore(subject.key);
+                if (userScore === null || userScore === undefined) {
+                    return {
+                        chipText: '未输入',
+                        chipClass: 'bg-slate-200 text-slate-700',
+                        medianBarClass: 'bg-slate-400',
+                        p90BarClass: 'bg-slate-400'
+                    };
+                }
+
+                if (userScore < subject.median) {
+                    return {
+                        chipText: `待补 ${Math.ceil(subject.median - userScore)}分`,
+                        chipClass: 'bg-rose-100 text-rose-700',
+                        medianBarClass: 'bg-rose-500',
+                        p90BarClass: 'bg-rose-400'
+                    };
+                }
+
+                if (userScore < subject.p90) {
+                    return {
+                        chipText: `冲刺 ${Math.ceil(subject.p90 - userScore)}分`,
+                        chipClass: 'bg-amber-100 text-amber-700',
+                        medianBarClass: 'bg-amber-500',
+                        p90BarClass: 'bg-amber-500'
+                    };
+                }
+
+                return {
+                    chipText: `领先 ${Math.ceil(userScore - subject.p90)}分`,
+                    chipClass: 'bg-emerald-100 text-emerald-700',
+                    medianBarClass: 'bg-emerald-500',
+                    p90BarClass: 'bg-emerald-600'
+                };
+            };
+
+            // Methods
+            const resetScores = () => {
+                scores.value = {
+                    ja: 280,
+                    kijutsu: 35,
+                    sub: track.value === 'bunka' ? 150 : 120,
+                    math: 120,
+                    ibt: 0,
+                    toeic: 0
+                };
+            };
+
+            const resetLeftPanel = () => {
+                if (currentLeftPanelMode.value === 'score_input') {
+                    resetScores();
+                    hasSubmittedScoreInput.value = false;
+                    hasSubmittedPrecision.value = false;
+                    precisionResult.value = null;
+                    precisionWarning.value = '';
+                    results.value = { safety: [], match: [], challenger: [] };
+                } else {
+                    selectedTargetSchool.value = '';
+                    selectedTargetFaculty.value = '';
+                    targetSchoolSearch.value = '';
+                    targetFacultyList.value = [];
+                    currentTargetTab.value = 'target_overview';
+                    hasSubmittedTargetSetting.value = false;
+                    precisionResult.value = null;
+                    precisionWarning.value = '';
+                    results.value = { safety: [], match: [], challenger: [] };
+                }
+            };
+
+            const setLeftPanelMode = (mode) => {
+                currentLeftPanelMode.value = mode;
+                if (mode === 'target_setting') {
+                    currentTargetTab.value = 'target_overview';
+                    hasSubmittedTargetSetting.value = false;
+                } else {
+                    currentTab.value = 'recommend';
+                }
+            };
+
+            // Watch track to adjust default sub scores
+            watch(track, (newTrack) => {
+                if (newTrack === 'bunka') {
+                    scores.value.sub = 150;
+                    scores.value.math = 120;
+                } else {
+                    scores.value.sub = 120; // 2 science
+                    scores.value.math = 120;
+                }
+                if (currentLeftPanelMode.value === 'score_input') {
+                    hasSubmittedScoreInput.value = false;
+                    hasSubmittedPrecision.value = false;
+                    precisionResult.value = null;
+                    precisionWarning.value = '';
+                }
+
+                const allowedValues = new Set(recommendMajorOptions.value.map((x) => x.value));
+                if (!allowedValues.has(recommendMajorDirection.value)) {
+                    recommendMajorDirection.value = 'all';
+                }
+            });
+            // Watch targetTrack for target setting
+            watch(targetTrack, (newTrack) => {
+                precisionWarning.value = '';
+                hasSubmittedTargetSetting.value = false;
+                if (currentLeftPanelMode.value === 'target_setting') {
+                    precisionResult.value = null;
+                }
+            });
+
+            // Get schools index on startup
+            const fetchSchoolsIndex = () => {
+                fetch('/api/schools')
+                    .then(res => res.json())
+                    .then(data => {
+                        schoolList.value = data.schools;
+                        rawSchoolIndex.value = data.index;
+                        selectedSchool.value = '';
+                        selectedFaculty.value = '';
+                        schoolSearch.value = '';
+                        facultyList.value = [];
+                        selectedTargetSchool.value = '';
+                        selectedTargetFaculty.value = '';
+                        targetSchoolSearch.value = '';
+                        targetFacultyList.value = [];
+                    })
+                    .catch(err => console.error("Error loading schools:", err));
+            };
+
+            const onSchoolChange = () => {
+                showSchoolSuggestions.value = false;
+                facultyList.value = rawSchoolIndex.value[selectedSchool.value] || [];
+                if (currentLeftPanelMode.value === 'score_input') {
+                    selectedFaculty.value = '';
+                    hasSubmittedPrecision.value = false;
+                    precisionResult.value = null;
+                    precisionWarning.value = '';
+                } else {
+                    selectedFaculty.value = '';
+                }
+            };
+
+            const onSchoolSearch = () => {
+                if (!schoolSearch.value) {
+                    return;
+                }
+                showSchoolSuggestions.value = true;
+            };
+
+            const onTargetSchoolSearch = () => {
+                if (!targetSchoolSearch.value) {
+                    return;
+                }
+                showTargetSchoolSuggestions.value = true;
+            };
+
+            const chooseSchool = (school) => {
+                selectedSchool.value = school;
+                schoolSearch.value = school;
+                showSchoolSuggestions.value = false;
+                facultyList.value = rawSchoolIndex.value[school] || [];
+                currentTab.value = 'precision';
+                if (currentLeftPanelMode.value === 'score_input') {
+                    selectedFaculty.value = '';
+                    hasSubmittedPrecision.value = false;
+                    precisionResult.value = null;
+                    precisionWarning.value = '';
+                } else {
+                    selectedFaculty.value = '';
+                }
+            };
+
+            const chooseTargetSchool = (school) => {
+                selectedTargetSchool.value = school;
+                targetSchoolSearch.value = school;
+                showTargetSchoolSuggestions.value = false;
+                targetFacultyList.value = rawSchoolIndex.value[school] || [];
+                selectedTargetFaculty.value = '';
+                precisionWarning.value = '';
+                hasSubmittedTargetSetting.value = false;
+                if (currentLeftPanelMode.value === 'target_setting') {
+                    precisionResult.value = null;
+                }
+            };
+
+            const hideSchoolSuggestions = () => {
+                window.setTimeout(() => {
+                    showSchoolSuggestions.value = false;
+                }, 150);
+            };
+
+            const hideTargetSchoolSuggestions = () => {
+                window.setTimeout(() => {
+                    showTargetSchoolSuggestions.value = false;
+                }, 150);
+            };
+
+            const selectSchoolFromRecommend = (school, faculty) => {
+                selectedSchool.value = school;
+                schoolSearch.value = school;
+                onSchoolChange();
+                selectedFaculty.value = faculty;
+                currentTab.value = 'precision';
+                hasSubmittedPrecision.value = false;
+                precisionResult.value = null;
+                precisionWarning.value = '';
+            };
+
+            const onPrecisionSelectionChange = () => {
+                hasSubmittedPrecision.value = false;
+                precisionResult.value = null;
+                precisionWarning.value = '';
+            };
+
+            const onScorePredictSubmit = () => {
+                hasSubmittedScoreInput.value = true;
+                currentTab.value = 'recommend';
+                fetchRecommendations();
+            };
+
+            const fetchRecommendations = () => {
+                precisionResult.value = null;
+                precisionWarning.value = '';
+                hasSubmittedPrecision.value = false;
+                const payload = {
+                    mode: 'prediction',
+                    track: track.value,
+                    ja: scores.value.ja,
+                    kijutsu: scores.value.kijutsu,
+                    math: scores.value.math,
+                    sub: scores.value.sub,
+                    ibt: scores.value.ibt || 0,
+                    toeic: scores.value.toeic || 0,
+                    region_filter: recommendRegion.value,
+                    school_type_filter: recommendSchoolType.value,
+                    major_direction_filter: recommendMajorDirection.value,
+                    target_school: null,
+                    target_faculty: null
+                };
+
+                fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    results.value = data.recommendations || { safety: [], match: [], challenger: [] };
+                })
+                .catch(err => console.error('Error fetching recommendations:', err));
+            };
+
+            const analyzePrecision = () => {
+                if (!selectedSchool.value || !selectedFaculty.value) {
+                    return;
+                }
+
+                hasSubmittedPrecision.value = true;
+                precisionResult.value = null;
+                precisionWarning.value = '';
+
+                const payload = {
+                    mode: 'prediction',
+                    track: track.value,
+                    ja: scores.value.ja,
+                    kijutsu: scores.value.kijutsu,
+                    math: scores.value.math,
+                    sub: scores.value.sub,
+                    ibt: scores.value.ibt || 0,
+                    toeic: scores.value.toeic || 0,
+                    target_school: selectedSchool.value,
+                    target_faculty: selectedFaculty.value
+                };
+
+                fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.target_result && !data.target_result.error) {
+                        precisionResult.value = {
+                            mode: 'prediction',
+                            school: data.target_result.school,
+                            faculty: data.target_result.faculty,
+                            tier: data.target_result.tier,
+                            school_rank: data.target_result.school_rank,
+                            school_type: data.target_result.school_type,
+                            faculty_display: data.target_result.faculty_display,
+                            stats: {
+                                probability: data.target_result.probability,
+                                total_records: data.target_result.stats.total_records,
+                                passed_count: data.target_result.stats.passed_count,
+                                failed_count: data.target_result.stats.failed_count,
+                                median_score: data.target_result.stats.median_score,
+                                min_passed: data.target_result.stats.min_passed,
+                                max_passed: data.target_result.stats.max_passed,
+                                target_range_q1: data.target_result.stats.target_range_q1,
+                                target_range_q3: data.target_result.stats.target_range_q3,
+                                avg_ibt: data.target_result.stats.avg_ibt,
+                                avg_toeic: data.target_result.stats.avg_toeic,
+                                avg_kijutsu: data.target_result.stats.avg_kijutsu,
+                                subject_scores: []
+                            }
+                        };
+                        fetchSchoolDetails(precisionResult.value.school, precisionResult.value.faculty);
+                    } else if (data.target_result && data.target_result.error) {
+                        precisionResult.value = null;
+                        precisionWarning.value = data.target_result.message || '当前文理方向与目标专业不匹配，无法报考。';
+                    } else {
+                        precisionResult.value = null;
+                    }
+                })
+                .catch(err => console.error('Error analyzing precision:', err));
+            };
+
+            const onTargetSchoolChange = () => {
+                showTargetSchoolSuggestions.value = false;
+                targetFacultyList.value = rawSchoolIndex.value[selectedTargetSchool.value] || [];
+                selectedTargetFaculty.value = '';
+                precisionWarning.value = '';
+                hasSubmittedTargetSetting.value = false;
+                if (currentLeftPanelMode.value === 'target_setting') {
+                    precisionResult.value = null;
+                }
+            };
+
+            const onTargetFacultyChange = () => {
+                precisionWarning.value = '';
+                hasSubmittedTargetSetting.value = false;
+                if (currentLeftPanelMode.value === 'target_setting') {
+                    precisionResult.value = null;
+                }
+            };
+
+            const onTargetSchoolSelected = () => {
+                if (selectedTargetSchool.value) {
+                    targetSchoolSearch.value = selectedTargetSchool.value;
+                    showTargetSchoolSuggestions.value = false;
+                    onTargetSchoolChange();
+                }
+            };
+
+            const fetchTargetScores = () => {
+                precisionResult.value = null;
+                precisionWarning.value = '';
+                results.value = { safety: [], match: [], challenger: [] };
+
+                if (!selectedTargetSchool.value || !selectedTargetFaculty.value) {
+                    return;
+                }
+
+                hasSubmittedTargetSetting.value = true;
+
+                const payload = {
+                    mode: 'target_setting',
+                    track: targetTrack.value,
+                    target_school: selectedTargetSchool.value,
+                    target_faculty: selectedTargetFaculty.value
+                };
+
+                fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.target_result && !data.target_result.error) {
+                        precisionResult.value = {
+                            mode: 'target_setting',
+                            school: data.target_result.school,
+                            faculty: data.target_result.faculty,
+                            tier: '目标设定',
+                            school_rank: data.target_result.school_rank,
+                            school_type: data.target_result.school_type,
+                            faculty_display: data.target_result.faculty_display,
+                            stats: {
+                                probability: 0,
+                                total_records: data.target_result.stats.total_records,
+                                median_score: data.target_result.stats.median_score,
+                                min_passed: data.target_result.stats.min_passed,
+                                max_passed: data.target_result.stats.max_passed,
+                                target_range_q1: data.target_result.stats.target_range_q1,
+                                target_range_q3: data.target_result.stats.target_range_q3,
+                                avg_ibt: data.target_result.stats.avg_ibt,
+                                avg_toeic: data.target_result.stats.avg_toeic,
+                                avg_kijutsu: data.target_result.stats.avg_kijutsu,
+                                subject_scores: data.target_result.stats.subject_scores || []
+                            }
+                        };
+                        currentTargetTab.value = 'target_overview';
+                        fetchSchoolDetails(precisionResult.value.school, precisionResult.value.faculty);
+                    } else if (data.target_result && data.target_result.error) {
+                        precisionResult.value = null;
+                        precisionWarning.value = data.target_result.message || '当前文理方向与目标专业不匹配，无法报考。';
+                    } else {
+                        precisionResult.value = null;
+                    }
+                })
+                .catch(err => console.error("Error fetching target scores:", err));
+            };
+
+            // Fetch school detail for histogram plotting
+            const fetchSchoolDetails = (school, faculty) => {
+                fetch('/api/school-detail', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        school: school,
+                        faculty: faculty,
+                        track: currentLeftPanelMode.value === 'score_input' ? track.value : targetTrack.value // Use correct track based on mode
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // Plot Chart
+                    nextTick(() => {
+                        plotDistributionChart(data.scores_passed, data.scores_failed);
+                        if (precisionResult.value && !precisionResult.value.stats.subject_scores.length) { // Only update if not already populated by target_setting mode
+                            precisionResult.value.stats.subject_scores = data.stats.subject_scores || [];
+                        }
+                        // Update school_rank, school_type, faculty_display for target setting mode
+                        if (precisionResult.value && currentLeftPanelMode.value === 'target_setting') {
+                            precisionResult.value.school_rank = data.school_rank;
+                            precisionResult.value.school_type = data.school_type;
+                            precisionResult.value.faculty_display = data.faculty_display;
+                        }
+                    });
+                })
+                .catch(err => console.error("Error loading school detail:", err));
+            };
+
+            const plotDistributionChart = (passedScores, failedScores) => {
+                const chartId = currentLeftPanelMode.value === 'target_setting' ? 'distributionChartTarget' : 'distributionChartScore';
+                const canvas = document.getElementById(chartId);
+                if (!canvas) {
+                    return;
+                }
+                const ctx = canvas.getContext('2d');
+                
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                // Create score bin counts
+                const binSize = 25;
+                const bins = [];
+                for (let b = 300; b <= 800; b += binSize) {
+                    bins.push(b);
+                }
+
+                const labels = bins.slice(0, -1).map((b, i) => `${b}-${bins[i+1]}`);
+                const passedData = Array(labels.length).fill(0);
+                const failedData = Array(labels.length).fill(0);
+
+                passedScores.forEach(score => {
+                    for (let i = 0; i < bins.length - 1; i++) {
+                        if (score >= bins[i] && score < bins[i+1]) {
+                            passedData[i]++;
+                            break;
+                        }
+                    }
+                });
+
+                failedScores.forEach(score => {
+                    for (let i = 0; i < bins.length - 1; i++) {
+                        if (score >= bins[i] && score < bins[i+1]) {
+                            failedData[i]++;
+                            break;
+                        }
+                    }
+                });
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: '历史录取合格人数',
+                                data: passedData,
+                                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                                borderColor: 'rgb(16, 185, 129)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: '历史报考不合格人数',
+                                data: failedData,
+                                backgroundColor: 'rgba(244, 63, 94, 0.7)',
+                                borderColor: 'rgb(244, 63, 94)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        weight: 'bold',
+                                        size: 10
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: { display: false },
+                                title: {
+                                    display: true,
+                                    text: 'EJU三科总分值段',
+                                    font: { size: 10, weight: 'bold' }
+                                },
+                                ticks: { font: { size: 9 } }
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '样本人数 (人)',
+                                    font: { size: 10, weight: 'bold' }
+                                },
+                                ticks: { font: { size: 9 } }
+                            }
+                        }
+                    }
+                });
+            };
+
+            // Startup hook
+            fetchSchoolsIndex();
+
+            return {
+                track,
+                scores,
+                currentTab,
+                currentTargetTab,
+                currentLeftPanelMode,
+                hasSubmittedScoreInput,
+                hasSubmittedPrecision,
+                hasSubmittedTargetSetting,
+                targetTrack,
+                targetSchoolSearch,
+                filteredTargetSchoolList,
+                visibleTargetSchoolSuggestions,
+                showTargetSchoolSuggestions,
+                selectedTargetSchool,
+                targetFacultyList,
+                selectedTargetFaculty,
+                schoolSearch,
+                schoolList,
+                filteredSchoolList,
+                visibleSchoolSuggestions,
+                showSchoolSuggestions,
+                selectedSchool,
+                facultyList,
+                selectedFaculty,
+                results,
+                recommendRegion,
+                recommendSchoolType,
+                recommendMajorDirection,
+                recommendMajorOptions,
+                precisionResult,
+                precisionWarning,
+                totalEJUScore,
+                userScorePercentile,
+                medianScorePercentile,
+                gaugeColor,
+                targetPlanBands,
+                adviceComment,
+                totalGapInfo,
+                subjectGapInfo,
+                subjectGapVisual,
+                subjectHasVisualData,
+                subjectRecommendRangeStyle,
+                subjectMedianStyle,
+                subjectAvgStyle,
+                subjectUserScore,
+                subjectUserStyle,
+                resetScores,
+                resetLeftPanel,
+                setLeftPanelMode,
+                onSchoolChange,
+                onSchoolSearch,
+                onTargetSchoolSearch,
+                chooseSchool,
+                chooseTargetSchool,
+                hideSchoolSuggestions,
+                hideTargetSchoolSuggestions,
+                onTargetSchoolSelected,
+                onPrecisionSelectionChange,
+                onTargetFacultyChange,
+                selectSchoolFromRecommend,
+                onScorePredictSubmit,
+                analyzePrecision,
+                fetchTargetScores
+            };
+        }
+    }).mount('#app');
+</script>
+
+</body>
+</html>
