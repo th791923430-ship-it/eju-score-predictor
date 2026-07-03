@@ -138,14 +138,18 @@
                             <i class="fa-solid fa-map-location-dot text-indigo-500"></i>
                             学校地区范围
                         </label>
-                        <select v-model="recommendRegion"
-                                class="block w-full border border-slate-200 rounded-lg py-1.5 px-3 bg-white text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="all">全国范围（不限）</option>
-                            <option value="capital">首都圈（东京/神奈川/千叶/埼玉）</option>
-                            <option value="kanto">关东地区（含首都圈）</option>
-                            <option value="kansai">关西地区</option>
-                            <option value="outside_capital">首都圈以外</option>
-                        </select>
+                        <div class="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                            <div class="text-sm font-semibold text-slate-800">{{ recommendRegionSummary }}</div>
+                            <div class="mt-2 grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto pr-1">
+                                <label v-for="item in recommendRegionOptions" :key="item.value" class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                                    <input type="checkbox"
+                                           :checked="isRegionSelected(item.value)"
+                                           @change="toggleRecommendRegion(item.value)"
+                                           class="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span>{{ item.label }}</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="rounded-lg border border-slate-200/80 bg-white/90 p-2.5">
@@ -251,22 +255,32 @@
                 <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">英语标准化成绩 (选填)</span>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-600">TOEFL iBT (0-120)</label>
-                        <div class="relative rounded-md shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                                <span class="text-xs font-bold text-slate-400">iBT</span>
-                            </div>
-                            <input type="number" v-model.number="scores.ibt" min="0" max="120" placeholder="未报考" class="block w-full pl-9 pr-3 py-2 border rounded-md text-sm text-center font-bold text-slate-700 focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
+                        <label class="block text-[11px] font-bold text-slate-600 leading-tight min-h-[2.25rem]">
+                            <span class="block">旧TOEFL iBT</span>
+                            <span class="block">(0-120)</span>
+                        </label>
+                        <input type="number" v-model.number="scores.ibt" min="0" max="120" placeholder="未报考" class="block w-full px-3 py-3 border rounded-md text-base text-center font-bold text-slate-800 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-600">TOEIC (0-990)</label>
-                        <div class="relative rounded-md shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                                <span class="text-xs font-bold text-slate-400">TOEIC</span>
-                            </div>
-                            <input type="number" v-model.number="scores.toeic" min="0" max="990" placeholder="未报考" class="block w-full pl-12 pr-3 py-2 border rounded-md text-sm text-center font-bold text-slate-700 focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
+                        <label class="block text-[11px] font-bold text-slate-600 leading-tight min-h-[2.25rem]">
+                            <span class="block">新TOEFL iBT</span>
+                            <span class="block">(1-6)</span>
+                        </label>
+                        <input type="number" v-model.number="scores.new_toefl" min="0" max="6" step="0.5" placeholder="未报考" class="block w-full px-3 py-3 border rounded-md text-base text-center font-bold text-slate-800 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-600 leading-tight min-h-[2.25rem]">
+                            <span class="block">IELTS</span>
+                            <span class="block">(0-9)</span>
+                        </label>
+                        <input type="number" v-model.number="scores.ielts" min="0" max="9" step="0.5" placeholder="未报考" class="block w-full px-3 py-3 border rounded-md text-base text-center font-bold text-slate-800 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[11px] font-bold text-slate-600 leading-tight min-h-[2.25rem]">
+                            <span class="block">TOEIC</span>
+                            <span class="block">(0-990)</span>
+                        </label>
+                        <input type="number" v-model.number="scores.toeic" min="0" max="990" placeholder="未报考" class="block w-full px-3 py-3 border rounded-md text-base text-center font-bold text-slate-800 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
             </div>
@@ -399,16 +413,27 @@
 
             <!-- Tab 1: Recommendations -->
             <div v-show="currentLeftPanelMode === 'score_input' && hasSubmittedScoreInput && currentTab === 'recommend'" class="space-y-6">
+
+                <!-- Recommendation Disclaimer -->
+                <div class="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 flex items-start space-x-3">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg mt-0.5"></i>
+                    <div class="text-sm text-amber-900 leading-relaxed">
+                        <strong class="font-bold">重要提示：</strong>
+                        本页面为基于历史录取大数据的概率性推荐结果，仅用于择校参考，不代表任何申请人已具备任一院校或学部的报考资格，
+                        <span class="font-bold">亦不构成任何形式的录取保证</span>。
+                        具体报考条件、出愿时间、语言要求、校内考与面试安排等，请务必以各大学当年度募集要项与官方通知为准。
+                    </div>
+                </div>
                 
                 <!-- Recommendation Headers / Tips -->
                 <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-start space-x-3">
                     <i class="fa-solid fa-lightbulb text-indigo-600 text-lg mt-0.5"></i>
                     <div class="text-sm text-indigo-900 leading-relaxed">
-                        <strong class="font-bold">录取概率阶梯说明：</strong> 
-                        系统基于往年录取成绩的分布，将大学划分为三个层级。
-                        <span class="font-bold text-emerald-700">保底校</span>表示你的分数处于历史录取的高分段，通过概率极大；
-                        <span class="font-bold text-amber-600">适中校</span>表示分数与历史录取中位数相匹配，竞争较为稳妥；
-                        <span class="font-bold text-rose-600">冲刺校</span>表示你正处于录取门槛边缘，值得梦想挑战。
+                        <strong class="font-bold">录取概率分层说明：</strong>
+                        系统依据往年录取成绩分布，将推荐结果分为三个参考层级。
+                        <span class="font-bold text-emerald-700">保底校</span>表示你的分数在历史样本中相对更有优势；
+                        <span class="font-bold text-amber-600">适中校</span>表示分数与历史录取中位区间接近；
+                        <span class="font-bold text-rose-600">冲刺校</span>表示分数接近历史录取门槛，建议结合募集要项与个人条件综合判断。
                     </div>
                 </div>
 
@@ -433,6 +458,8 @@
                                     <span class="text-xs font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ (item.probability * 100).toFixed(0) }}%</span>
                                 </div>
                                 <p class="text-xs text-slate-600 mt-1">{{ item.faculty_display || item.faculty }}</p>
+                                <p v-if="item.is_high_talent_bonus_school" class="text-[11px] text-sky-700 mt-1 font-semibold">高度人才加分校</p>
+                                <p v-if="item.application_window" class="text-[11px] text-slate-500 mt-1">参考出愿时间：{{ item.application_window }}</p>
                                 <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
                                     <span>{{ item.school_rank }} | {{ item.school_type }}</span>
                                     <span>历史中位数: {{ item.median_score }}分</span>
@@ -459,6 +486,8 @@
                                     <span class="text-xs font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded">{{ (item.probability * 100).toFixed(0) }}%</span>
                                 </div>
                                 <p class="text-xs text-slate-600 mt-1">{{ item.faculty_display || item.faculty }}</p>
+                                <p v-if="item.is_high_talent_bonus_school" class="text-[11px] text-sky-700 mt-1 font-semibold">高度人才加分校</p>
+                                <p v-if="item.application_window" class="text-[11px] text-slate-500 mt-1">参考出愿时间：{{ item.application_window }}</p>
                                 <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
                                     <span>{{ item.school_rank }} | {{ item.school_type }}</span>
                                     <span>历史中位数: {{ item.median_score }}分</span>
@@ -485,6 +514,8 @@
                                     <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-1.5 py-0.5 rounded">{{ (item.probability * 100).toFixed(0) }}%</span>
                                 </div>
                                 <p class="text-xs text-slate-600 mt-1">{{ item.faculty_display || item.faculty }}</p>
+                                <p v-if="item.is_high_talent_bonus_school" class="text-[11px] text-sky-700 mt-1 font-semibold">高度人才加分校</p>
+                                <p v-if="item.application_window" class="text-[11px] text-slate-500 mt-1">参考出愿时间：{{ item.application_window }}</p>
                                 <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
                                     <span>{{ item.school_rank }} | {{ item.school_type }}</span>
                                     <span>历史中位数: {{ item.median_score }}分</span>
@@ -563,6 +594,7 @@
                                 <span class="bg-slate-100 text-slate-800 text-xs font-extrabold px-2.5 py-1 rounded">{{ precisionResult.school_type }}</span>
                             </div>
                             <p class="text-sm text-slate-600 mt-1 font-semibold">{{ precisionResult.faculty_display || precisionResult.faculty }} （{{ track === 'bunka' ? '文科生' : '理科生' }}方向）</p>
+                            <p v-if="precisionResult.officialMeta && precisionResult.officialMeta.region" class="text-[11px] text-slate-500 mt-1">地区：{{ precisionResult.officialMeta.region }}</p>
                         </div>
                         <div class="flex items-center space-x-2 bg-indigo-50 border border-indigo-100/50 p-2 rounded-lg">
                             <i class="fa-solid fa-pen-nib text-indigo-500 text-sm"></i>
@@ -575,6 +607,24 @@
                             <span class="mx-2 text-indigo-200">|</span>
                             <i class="fa-solid fa-database text-indigo-500 text-sm"></i>
                             <span class="text-xs text-indigo-800 font-bold">历史录取库样本数: {{ precisionResult.stats.total_records }} 条</span>
+                        </div>
+                    </div>
+
+                    <div v-if="precisionResult.officialMeta && (precisionResult.officialMeta.guideline_url || precisionResult.officialMeta.application_window || precisionResult.officialMeta.eju_subjects || precisionResult.officialMeta.school_exam || precisionResult.officialMeta.english_type || precisionResult.officialMeta.jlpt_required !== undefined)"
+                         class="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-xl border border-sky-100 bg-sky-50 px-4 py-4">
+                        <div class="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 leading-relaxed">
+                            以下出愿期间、EJU要求等信息仅供参考，详细且准确的报考信息请以大学官方募集要项为准。
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-700">
+                            <div v-if="precisionResult.officialMeta.application_window"><span class="font-bold text-sky-800">出愿区间：</span>{{ precisionResult.officialMeta.application_window }}</div>
+                            <div v-if="precisionResult.officialMeta.eju_subjects"><span class="font-bold text-sky-800">EJU要求：</span>{{ precisionResult.officialMeta.eju_subjects }}</div>
+                            <div v-if="precisionResult.officialMeta.school_exam"><span class="font-bold text-sky-800">校内考/面试：</span>{{ precisionResult.officialMeta.school_exam }}</div>
+                            <div v-if="precisionResult.officialMeta.school_exam_detail"><span class="font-bold text-sky-800">校内考细节：</span>{{ precisionResult.officialMeta.school_exam_detail }}</div>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-700">
+                            <div v-if="precisionResult.officialMeta.english_required !== undefined"><span class="font-bold text-sky-800">英语成绩：</span>{{ precisionResult.officialMeta.english_required ? '需要' : '非必须/未明确' }}<span v-if="precisionResult.officialMeta.english_type">（{{ precisionResult.officialMeta.english_type }}）</span></div>
+                            <div v-if="precisionResult.officialMeta.jlpt_required !== undefined"><span class="font-bold text-sky-800">JLPT：</span>{{ precisionResult.officialMeta.jlpt_required ? '必须提交' : '非必须/可替代' }}</div>
+                            <div v-if="precisionResult.officialMeta.guideline_url"><span class="font-bold text-sky-800">募集要项：</span><a :href="precisionResult.officialMeta.guideline_url" target="_blank" rel="noreferrer" class="text-indigo-700 underline break-all">查看官方募集要项</a></div>
                         </div>
                     </div>
 
@@ -846,12 +896,31 @@
                                 <span class="bg-slate-100 text-slate-800 text-xs font-extrabold px-2.5 py-1 rounded">{{ precisionResult.school_type }}</span>
                             </div>
                             <p class="text-sm text-slate-600 mt-1 font-semibold">{{ precisionResult.faculty_display || precisionResult.faculty }} （{{ targetTrack === 'bunka' ? '文科生' : '理科生' }}方向）</p>
+                            <p v-if="precisionResult.officialMeta && precisionResult.officialMeta.region" class="text-[11px] text-slate-500 mt-1">地区：{{ precisionResult.officialMeta.region }}</p>
                         </div>
                         <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-right">
                             <div class="text-[11px] font-bold text-emerald-700">80% 历史合格区间</div>
                             <div class="text-xl font-black text-emerald-800">
                                 {{ precisionResult.stats.target_range_q1 !== null && precisionResult.stats.target_range_q3 !== null ? precisionResult.stats.target_range_q1.toFixed(0) + ' ~ ' + precisionResult.stats.target_range_q3.toFixed(0) : '--' }}
                             </div>
+                        </div>
+                    </div>
+
+                    <div v-if="precisionResult.officialMeta && (precisionResult.officialMeta.guideline_url || precisionResult.officialMeta.application_window || precisionResult.officialMeta.eju_subjects || precisionResult.officialMeta.school_exam || precisionResult.officialMeta.english_type || precisionResult.officialMeta.jlpt_required !== undefined)"
+                         class="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-4">
+                        <div class="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 leading-relaxed">
+                            以下出愿期间、EJU要求等信息仅供参考，详细且准确的报考信息请以大学官方募集要项为准。
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-700">
+                            <div v-if="precisionResult.officialMeta.application_window"><span class="font-bold text-emerald-800">出愿区间：</span>{{ precisionResult.officialMeta.application_window }}</div>
+                            <div v-if="precisionResult.officialMeta.eju_subjects"><span class="font-bold text-emerald-800">EJU要求：</span>{{ precisionResult.officialMeta.eju_subjects }}</div>
+                            <div v-if="precisionResult.officialMeta.school_exam"><span class="font-bold text-emerald-800">校内考/面试：</span>{{ precisionResult.officialMeta.school_exam }}</div>
+                            <div v-if="precisionResult.officialMeta.school_exam_detail"><span class="font-bold text-emerald-800">校内考细节：</span>{{ precisionResult.officialMeta.school_exam_detail }}</div>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-700">
+                            <div v-if="precisionResult.officialMeta.english_required !== undefined"><span class="font-bold text-emerald-800">英语成绩：</span>{{ precisionResult.officialMeta.english_required ? '需要' : '非必须/未明确' }}<span v-if="precisionResult.officialMeta.english_type">（{{ precisionResult.officialMeta.english_type }}）</span></div>
+                            <div v-if="precisionResult.officialMeta.jlpt_required !== undefined"><span class="font-bold text-emerald-800">JLPT：</span>{{ precisionResult.officialMeta.jlpt_required ? '必须提交' : '非必须/可替代' }}</div>
+                            <div v-if="precisionResult.officialMeta.guideline_url"><span class="font-bold text-emerald-800">募集要项：</span><a :href="precisionResult.officialMeta.guideline_url" target="_blank" rel="noreferrer" class="text-indigo-700 underline break-all">查看官方募集要项</a></div>
                         </div>
                     </div>
 
@@ -999,6 +1068,8 @@
                 sub: 150,
                 math: 120,
                 ibt: 0,
+                new_toefl: 0,
+                ielts: 0,
                 toeic: 0
             });
             const currentTab = ref('recommend');
@@ -1007,17 +1078,31 @@
             const hasSubmittedScoreInput = ref(false);
             const hasSubmittedPrecision = ref(false);
             const hasSubmittedTargetSetting = ref(false);
-            const recommendRegion = ref('all');
+            const recommendRegion = ref(['all']);
+            const recommendRegionOptions = ref([
+                { value: 'all', label: '全国' },
+                { value: 'capital', label: '首都圈' },
+                { value: 'hokkaido', label: '北海道' },
+                { value: 'tohoku', label: '东北' },
+                { value: 'kanto', label: '关东' },
+                { value: 'chubu', label: '中部' },
+                { value: 'kinki', label: '近畿' },
+                { value: 'chugoku', label: '中国' },
+                { value: 'shikoku', label: '四国' },
+                { value: 'kyushu', label: '九州' }
+            ]);
             const recommendSchoolType = ref('all');
             const recommendMajorDirection = ref('all');
 
             // Select school index for score input mode
             const schoolSearch = ref('');
             const schoolList = ref([]);
+            const targetSchoolList = ref([]);
             const selectedSchool = ref('');
             const facultyList = ref([]);
             const selectedFaculty = ref('');
             const rawSchoolIndex = ref({});
+            const targetRawSchoolIndex = ref({});
             const showSchoolSuggestions = ref(false);
 
             // Select school index for target setting mode
@@ -1034,15 +1119,40 @@
                 '冈': '岡',
                 '广': '広',
                 '户': '戸',
-                '滨': '浜',
-                '台': '台',
-                '艺': '芸'
+                '艺': '芸',
+                '药': '薬',
+                '农': '農',
+                '齿': '歯',
+                '稻': '稲',
+                '语': '語',
+                '义': '義',
+                '馆': '館',
+                '图': '図',
+                '县': '県',
+                '岛': '島',
+                '专': '専',
+                '业': '業',
+                '门': '門',
+                '铁': '鉄',
+                '电': '電',
+                '學': '学',
+                '國': '国',
+                '臺': '台'
             };
+
+            const JP_TO_CN_CHAR_MAP = Object.fromEntries(
+                Object.entries(CN_TO_JP_CHAR_MAP).map(([cn, jp]) => [jp, cn])
+            );
 
             const SEARCH_ALIAS_MAP = [
                 { from: '东京', to: '東京' },
+                { from: '东京校', to: '東京校' },
                 { from: '东洋', to: '東洋' },
                 { from: '东北', to: '東北' },
+                { from: '东京工业', to: '東京工業' },
+                { from: '东京理科', to: '東京理科' },
+                { from: '东京农工', to: '東京農工' },
+                { from: '早稻田', to: '早稲田' },
                 { from: '庆应', to: '慶應' },
                 { from: '庆应义塾', to: '慶應義塾' },
                 { from: '关东', to: '関東' },
@@ -1051,7 +1161,8 @@
                 { from: '驹泽', to: '駒沢' },
                 { from: '驹泽', to: '駒澤' },
                 { from: '龙谷', to: '龍谷' },
-                { from: '国学院', to: '國學院' }
+                { from: '国学院', to: '國學院' },
+                { from: '北京语言', to: '北京語言' }
             ];
 
             const normalizeSearchText = (value) => {
@@ -1069,7 +1180,11 @@
                 const base = normalizeSearchText(value);
                 if (!base) return [];
 
-                const variants = new Set([base, applyCharMap(base, CN_TO_JP_CHAR_MAP)]);
+                const variants = new Set([
+                    base,
+                    applyCharMap(base, CN_TO_JP_CHAR_MAP),
+                    applyCharMap(base, JP_TO_CN_CHAR_MAP)
+                ]);
 
                 SEARCH_ALIAS_MAP.forEach((item) => {
                     const fromNorm = normalizeSearchText(item.from);
@@ -1099,13 +1214,55 @@
                 });
             };
 
+            const FEATURED_SCHOOL_CANDIDATES = [
+                // 旧帝大
+                '東京大学', '京都大学', '大阪大学', '東北大学', '名古屋大学', '九州大学', '北海道大学',
+                // Top national/public
+                '東京科学大学', '一橋大学', '神戸大学', '筑波大学', '横浜国立大学',
+                // 早庆上理
+                '早稲田大学', '慶應義塾大学', '上智大学', '東京理科大学',
+                // MARCH
+                '明治大学', '青山学院大学', '立教大学', '中央大学', '法政大学',
+                // 关关同立
+                '関西大学', '関西学院大学', '同志社大学', '立命館大学'
+            ];
+
+            const buildFeaturedSchoolSuggestions = (sourceList, limit = 20) => {
+                const list = Array.isArray(sourceList) ? sourceList : [];
+                if (!list.length) return [];
+
+                const available = new Set(list);
+                const picked = [];
+                const seen = new Set();
+
+                FEATURED_SCHOOL_CANDIDATES.forEach((name) => {
+                    if (available.has(name) && !seen.has(name)) {
+                        picked.push(name);
+                        seen.add(name);
+                    }
+                });
+
+                for (const name of list) {
+                    if (picked.length >= limit) break;
+                    if (!seen.has(name)) {
+                        picked.push(name);
+                        seen.add(name);
+                    }
+                }
+
+                return picked.slice(0, limit);
+            };
+
             const filteredTargetSchoolList = computed(() => {
                 if (!targetSchoolSearch.value) {
-                    return schoolList.value;
+                    return targetSchoolList.value;
                 }
-                return schoolList.value.filter((school) => schoolMatchesQuery(school, targetSchoolSearch.value));
+                return targetSchoolList.value.filter((school) => schoolMatchesQuery(school, targetSchoolSearch.value));
             });
             const visibleTargetSchoolSuggestions = computed(() => {
+                if (!targetSchoolSearch.value) {
+                    return buildFeaturedSchoolSuggestions(targetSchoolList.value, 20);
+                }
                 return filteredTargetSchoolList.value.slice(0, 20);
             });
             const selectedTargetSchool = ref('');
@@ -1121,6 +1278,9 @@
             });
 
             const visibleSchoolSuggestions = computed(() => {
+                if (!schoolSearch.value) {
+                    return buildFeaturedSchoolSuggestions(schoolList.value, 20);
+                }
                 return filteredSchoolList.value.slice(0, 20);
             });
 
@@ -1132,6 +1292,7 @@
                         { value: 'bunka_politics', label: '政治学/法学/公共政策' },
                         { value: 'bunka_business', label: '经营学/商学' },
                         { value: 'bunka_economics', label: '经济学' },
+                        { value: 'bunka_sociology', label: '社会学/福祉/人间科学' },
                         { value: 'bunka_liberal_arts', label: '教养/综合文化' },
                         { value: 'bunka_education', label: '教育学/学校教育' },
                         { value: 'bunka_language', label: '语言学/外语/日本语教育' }
@@ -1149,6 +1310,44 @@
                     { value: 'rika_dentistry', label: '齿学' },
                     { value: 'rika_agri_bio', label: '农学/生物/生命科学' }
                 ];
+            });
+
+            const isRegionSelected = (value) => {
+                return recommendRegion.value.includes(value);
+            };
+
+            const toggleRecommendRegion = (value) => {
+                const current = new Set(recommendRegion.value);
+
+                if (value === 'all') {
+                    recommendRegion.value = ['all'];
+                    return;
+                }
+
+                current.delete('all');
+                if (current.has(value)) {
+                    current.delete(value);
+                } else {
+                    current.add(value);
+                }
+
+                recommendRegion.value = current.size ? Array.from(current) : ['all'];
+            };
+
+            const recommendRegionSummary = computed(() => {
+                if (recommendRegion.value.includes('all')) {
+                    return '全国';
+                }
+
+                const labels = recommendRegionOptions.value
+                    .filter((item) => recommendRegion.value.includes(item.value))
+                    .map((item) => item.label);
+
+                if (!labels.length) {
+                    return '全国';
+                }
+
+                return labels.join('、');
             });
 
             // Prediction results
@@ -1206,21 +1405,21 @@
 
                 return [
                     {
-                        level: '冲刺线',
+                        level: '低概率区',
                         rangeText: `${challengerMin} ~ ${challengerMax}`,
                         advice: '用于试探上限，适合主攻校内考和面试表现。',
                         cardClass: 'bg-rose-50 border-rose-100',
                         badgeClass: 'bg-rose-100 text-rose-700'
                     },
                     {
-                        level: '主目标线',
+                        level: '较高概率区',
                         rangeText: `${matchMin} ~ ${matchMax}`,
                         advice: '历史合格密集带，建议作为主要训练区间。',
                         cardClass: 'bg-amber-50 border-amber-100',
                         badgeClass: 'bg-amber-100 text-amber-700'
                     },
                     {
-                        level: '保底线',
+                        level: '高把握区',
                         rangeText: `${safetyMin} ~ ${safetyMax}`,
                         advice: '达到该区间后，整体录取风险将明显下降。',
                         cardClass: 'bg-emerald-50 border-emerald-100',
@@ -1240,7 +1439,7 @@
                     return '该目标学部当前可用样本较少，建议同时查看相近学部并结合校内考要求制定计划。';
                 }
 
-                return `基于 ${totalRecords} 条历史样本，该目标学部的核心提分区间为 ${q1.toFixed(0)}~${q3.toFixed(0)} 分${median ? `，中位录取分约 ${median.toFixed(0)} 分` : ''}。建议先把总分推进到主目标线，再强化校内考与面试来提升最终合格稳定性。`;
+                return `基于 ${totalRecords} 条历史样本，该目标学部的核心提分区间为 ${q1.toFixed(0)}~${q3.toFixed(0)} 分${median ? `，中位录取分约 ${median.toFixed(0)} 分` : ''}。建议先把总分推进到较高概率区，再强化校内考与面试来提升最终合格稳定性。`;
             });
 
             const adviceComment = computed(() => {
@@ -1478,6 +1677,8 @@
                     sub: track.value === 'bunka' ? 150 : 120,
                     math: 120,
                     ibt: 0,
+                    new_toefl: 0,
+                    ielts: 0,
                     toeic: 0
                 };
             };
@@ -1550,6 +1751,21 @@
                     .then(data => {
                         schoolList.value = data.schools;
                         rawSchoolIndex.value = data.index;
+                        targetSchoolList.value = data.target_schools || data.schools;
+                        targetRawSchoolIndex.value = data.target_index || data.index;
+                        recommendRegionOptions.value = [
+                            { value: 'all', label: '全国' },
+                            { value: 'capital', label: '首都圈' },
+                            { value: 'hokkaido', label: '北海道' },
+                            { value: 'tohoku', label: '东北' },
+                            { value: 'kanto', label: '关东' },
+                            { value: 'chubu', label: '中部' },
+                            { value: 'kinki', label: '近畿' },
+                            { value: 'chugoku', label: '中国' },
+                            { value: 'shikoku', label: '四国' },
+                            { value: 'kyushu', label: '九州' }
+                        ];
+                        recommendRegion.value = ['all'];
                         selectedSchool.value = '';
                         selectedFaculty.value = '';
                         schoolSearch.value = '';
@@ -1609,7 +1825,7 @@
                 selectedTargetSchool.value = school;
                 targetSchoolSearch.value = school;
                 showTargetSchoolSuggestions.value = false;
-                targetFacultyList.value = rawSchoolIndex.value[school] || [];
+                targetFacultyList.value = targetRawSchoolIndex.value[school] || [];
                 selectedTargetFaculty.value = '';
                 precisionWarning.value = '';
                 hasSubmittedTargetSetting.value = false;
@@ -1665,6 +1881,8 @@
                     math: scores.value.math,
                     sub: scores.value.sub,
                     ibt: scores.value.ibt || 0,
+                    new_toefl: scores.value.new_toefl || 0,
+                    ielts: scores.value.ielts || 0,
                     toeic: scores.value.toeic || 0,
                     region_filter: recommendRegion.value,
                     school_type_filter: recommendSchoolType.value,
@@ -1702,6 +1920,8 @@
                     math: scores.value.math,
                     sub: scores.value.sub,
                     ibt: scores.value.ibt || 0,
+                    new_toefl: scores.value.new_toefl || 0,
+                    ielts: scores.value.ielts || 0,
                     toeic: scores.value.toeic || 0,
                     target_school: selectedSchool.value,
                     target_faculty: selectedFaculty.value
@@ -1723,6 +1943,7 @@
                             school_rank: data.target_result.school_rank,
                             school_type: data.target_result.school_type,
                             faculty_display: data.target_result.faculty_display,
+                            officialMeta: data.target_result.official_meta || {},
                             stats: {
                                 probability: data.target_result.probability,
                                 total_records: data.target_result.stats.total_records,
@@ -1752,7 +1973,7 @@
 
             const onTargetSchoolChange = () => {
                 showTargetSchoolSuggestions.value = false;
-                targetFacultyList.value = rawSchoolIndex.value[selectedTargetSchool.value] || [];
+                targetFacultyList.value = targetRawSchoolIndex.value[selectedTargetSchool.value] || [];
                 selectedTargetFaculty.value = '';
                 precisionWarning.value = '';
                 hasSubmittedTargetSetting.value = false;
@@ -1811,6 +2032,7 @@
                             school_rank: data.target_result.school_rank,
                             school_type: data.target_result.school_type,
                             faculty_display: data.target_result.faculty_display,
+                            officialMeta: data.target_result.official_meta || {},
                             stats: {
                                 probability: 0,
                                 total_records: data.target_result.stats.total_records,
@@ -1861,6 +2083,9 @@
                             precisionResult.value.school_rank = data.school_rank;
                             precisionResult.value.school_type = data.school_type;
                             precisionResult.value.faculty_display = data.faculty_display;
+                        }
+                        if (precisionResult.value) {
+                            precisionResult.value.officialMeta = data.official_meta || precisionResult.value.officialMeta || {};
                         }
                     });
                 })
@@ -1999,6 +2224,8 @@
                 selectedFaculty,
                 results,
                 recommendRegion,
+                recommendRegionOptions,
+                recommendRegionSummary,
                 recommendSchoolType,
                 recommendMajorDirection,
                 recommendMajorOptions,
@@ -2022,6 +2249,8 @@
                 resetScores,
                 resetLeftPanel,
                 setLeftPanelMode,
+                isRegionSelected,
+                toggleRecommendRegion,
                 onSchoolChange,
                 onSchoolSearch,
                 onTargetSchoolSearch,

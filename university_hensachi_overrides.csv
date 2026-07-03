@@ -184,8 +184,6 @@ IPU環太平洋大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existi
 大阪女学院短期大学,52,9999,C级,fallback_group,not_found_in_toshin_keep_existing
 大阪学院大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
 大阪工業大学,54,9999,C级,toshin_hensachi_2026,matched=大阪工業大学
-大阪市立大学,68,9999,S级,dynamic_cache,not_found_in_toshin_keep_existing
-大阪府立大学,72,9999,S级,dynamic_cache,not_found_in_toshin_keep_existing
 大阪成蹊短期大学,52,9999,C级,fallback_group,not_found_in_toshin_keep_existing
 大阪教育大学,59,9999,B级,toshin_hensachi_2026,matched=大阪教育大学
 大阪樟蔭女子大学,52,9999,C级,fallback_group,not_found_in_toshin_keep_existing
@@ -363,7 +361,6 @@ IPU環太平洋大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existi
 杉野服飾大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
 杏林大学,59,9999,B级,toshin_hensachi_2026,matched=杏林大学
 東亜大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
-東京医科歯科大学,72,9999,S级,dynamic_cache,not_found_in_toshin_keep_existing
 東京国際大学,52,9999,C级,toshin_hensachi_2026,matched=東京国際大学
 東京国際工科専門職大学,52,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
 東京基督教大学,52,9999,C级,fallback_group,not_found_in_toshin_keep_existing
@@ -374,7 +371,6 @@ IPU環太平洋大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existi
 東京家政大学,57,9999,B级,toshin_hensachi_2026,matched=東京家政大学
 東京家政学院大学,52,9999,C级,toshin_hensachi_2026,matched=東京家政学院大学
 東京富士大学,52,9999,C级,fallback_group,not_found_in_toshin_keep_existing
-東京工業大学,67,84,S级,fallback_non_toshin,not_found_in_toshin_keep_existing
 東京工科大学,58,9999,B级,toshin_hensachi_2026,matched=東京工科大学
 東京工芸大学,54,9999,C级,toshin_hensachi_2026,matched=東京工芸大学
 東京情報大学,52,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
@@ -589,7 +585,6 @@ IPU環太平洋大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existi
 静岡英和学院大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
 静岡英和学院大学短期大学部,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
 順天堂大学,61,9999,A级,toshin_hensachi_2026,matched=順天堂大学
-首都大学東京,69,9999,S级,dynamic_cache,not_found_in_toshin_keep_existing
 香川大学,58,9999,B级,toshin_hensachi_2026,matched=香川大学
 香川短期大学,52,9999,C级,fallback_group,not_found_in_toshin_keep_existing
 香蘭女子短期大学,51,9999,C级,dynamic_cache,not_found_in_toshin_keep_existing
