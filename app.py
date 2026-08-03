@@ -552,6 +552,461 @@ TARGET_SCHOOL_FACULTY_INDEX = {}
 OFFICIAL_REGION_OPTIONS = []
 OFFICIAL_APPLICATION_MONTH_OPTIONS = []
 
+SUPPLEMENTAL_RECOMMENDATION_SCHOOL_CATALOG = {
+    '開志専門職大学': {
+        'region': '新潟県',
+        'school_info': {'hensachi': 52, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://kaishi-pu.ac.jp/admissions/examination/',
+            'school_exam': '官方入试信息页已公开，请以该页和当年度募集要项确认出愿方式与面试安排。',
+        },
+        'faculties': {
+            'アニメ・漫画学部': {'profile_key': 'art_access'},
+            '情報学部': {'source': {'faculty': '情報学部'}, 'profile_key': 'info_access'},
+            '事業創造学部': {'source': {'faculty': '事業創造学部'}, 'profile_key': 'business_access'},
+        },
+    },
+    '新潟医療福祉大学': {
+        'region': '新潟県',
+        'school_info': {'hensachi': 50, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://www.nuhw.ac.jp/admission/requirements.html',
+            'school_exam': '请以受验生页面与留学生页面核对当年度募集要项、校内考与材料要求。',
+            'school_exam_detail': '官网提供受验生页、留学生页和学科页，可进一步查看学科介绍与入试信息。',
+        },
+        'faculties': {
+            '健康福祉学科': {'profile_key': 'health_access'},
+            '健康スポーツ学科': {'profile_key': 'health_access'},
+            '健康栄養学科': {'profile_key': 'health_access'},
+            '社会福祉学科': {'profile_key': 'tourism_access'},
+            '心理学科': {'profile_key': 'bunka_access'},
+            '医療情報管理学科': {'profile_key': 'info_access'},
+            '健康データサイエンス学科': {'profile_key': 'info_access'},
+        },
+    },
+    '新潟食料農業大学': {
+        'region': '新潟県',
+        'school_info': {'hensachi': 51, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://nafu.ac.jp/exam/',
+            'school_exam': '官网已提供入试信息入口，留学生页面也已公开，请按官方最新募集要项确认。',
+        },
+        'faculties': {
+            '食品産業学部': {'source': {'faculty': '食料産業学部'}, 'profile_key': 'agri_access'},
+        },
+    },
+    '大手前大学': {
+        'region': '兵庫県',
+        'school_info': {'hensachi': 55, 'qs': 9999, 'tier': 'B级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://www.otemae.ac.jp/candidates/',
+            'school_exam': '请以受验生站点与各学部页面确认入试区分、出愿方式与校内考安排。',
+        },
+        'faculties': {
+            '国際日本学部': {'source': {'faculty': '総合文化学部'}, 'profile_key': 'bunka_access'},
+            '建築＆芸術学部': {'source': {'faculty': 'ﾒﾃﾞｨｱ芸術学部'}, 'profile_key': 'art_access'},
+            '現代社会学部': {'source': {'faculty': '現代社会学部'}, 'profile_key': 'tourism_access'},
+            '経営学部': {'profile_key': 'business_access'},
+        },
+    },
+    '仙台青葉学院大学': {
+        'region': '宮城県',
+        'school_info': {'hensachi': 48, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'school_exam_detail': '当前系统尚未核实该校官方募集要项链接，建议报考前直接到学校官网确认。',
+        },
+        'faculties': {
+            '作業療法学専攻': {'profile_key': 'rehab_access'},
+        },
+    },
+    '帝京平成大学': {
+        'region': '東京都',
+        'school_info': {'hensachi': 53, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://www.thu.ac.jp/exam/guidelines',
+        },
+        'faculties': {
+            '人間文化学科': {'source': {'faculty': '現代ﾗｲﾌ学部', 'department_tokens': ['人間文化']}},
+            '経営学科': {'source': {'faculty': '現代ﾗｲﾌ学部', 'department_tokens': ['経営']}},
+            '観光経営学科': {'source': {'faculty': '現代ﾗｲﾌ学部', 'department_tokens': ['観光経営']}},
+        },
+    },
+    '千葉科学大学': {
+        'region': '千葉県',
+        'school_info': {'hensachi': 51, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://www.cis.ac.jp/admission/',
+            'school_exam': '官网已提供受验生入口和国際交流・留学生サポート入口，请以官方当年版要项为准。',
+        },
+        'faculties': {
+            '危機管理学部': {'source': {'faculty': '危機管理学部'}, 'profile_key': 'info_access'},
+            '薬学部': {'source': {'faculty': '薬学部'}, 'profile_key': 'health_access'},
+            '看護学部': {'profile_key': 'health_access'},
+        },
+    },
+    '倉敷芸術科学大学': {
+        'region': '岡山県',
+        'school_info': {'hensachi': 51, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://www.kusa.ac.jp/admission/',
+            'school_exam': '官网首页已公开学生募集要项并提供受验生应援站点。',
+        },
+        'faculties': {
+            '芸術学部': {'source': {'faculty': '芸術学部'}, 'profile_key': 'art_access'},
+            '生命科学部': {'profile_key': 'agri_access'},
+        },
+    },
+    '長崎国際大学': {
+        'region': '長崎県',
+        'school_info': {'hensachi': 44, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'http://niupr.jp/',
+            'school_exam': '官网提供受验生应援站点、Web出愿站点与学科页面，请以官方页面确认出愿期。',
+        },
+        'faculties': {
+            '国際観光学科': {'source': {'faculty': '人間社会学部', 'department_tokens': ['国際観光']}, 'profile_key': 'tourism_access'},
+            '社会福祉学科': {'profile_key': 'tourism_access'},
+        },
+    },
+    '長崎総合科学大学': {
+        'region': '長崎県',
+        'school_info': {'hensachi': 51, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://nias.ac.jp/nyuusijouhou/',
+            'school_exam': '官网受验生站点已公开，工学部与総合情報学部可从官方学部页继续确认募集条件。',
+        },
+        'faculties': {
+            '工学部': {'source': {'faculty': '工学部'}, 'profile_key': 'info_access'},
+            '総合情報学部': {'profile_key': 'info_access'},
+        },
+    },
+    '育英館大学': {
+        'region': '北海道',
+        'school_info': {'hensachi': 52, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'school_exam_detail': '当前系统仅补充了学部与推荐逻辑，官方募集要项链接仍待人工核实。',
+        },
+        'faculties': {
+            '情報メディア学部': {'source': {'faculty': '情報ﾒﾃﾞｨｱ学部'}},
+        },
+    },
+    '北洋大学': {
+        'region': '北海道',
+        'school_info': {'hensachi': 52, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'school_exam_detail': '当前系统仅补充了学部与推荐逻辑，官方募集要项链接仍待人工核实。',
+        },
+        'faculties': {
+            '国際文化学部': {'source': {'faculty': '国際文化学部'}},
+        },
+    },
+    '山梨学院大学': {
+        'region': '山梨県',
+        'school_info': {'hensachi': 48, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'guideline_url': 'https://www.ygu.ac.jp/admission/',
+            'school_exam': '官网提供受验生向け信息与经営学部页面，具体出愿期请以当年度募集要项确认。',
+        },
+        'faculties': {
+            '経営学部': {'source': {'faculty': '経営学部'}, 'profile_key': 'business_access'},
+        },
+    },
+    'リハビリテーションカレッジ島根': {
+        'region': '島根県',
+        'school_info': {'hensachi': 47, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'school_exam_detail': '当前系统仅补充了学科与推荐逻辑，官方募集要项链接仍待人工核实。',
+        },
+        'faculties': {
+            '理学療法学科': {'profile_key': 'rehab_access'},
+            '作業療法学科': {'profile_key': 'rehab_access'},
+        },
+    },
+    'おたる国際福祉観光専修学院': {
+        'region': '北海道',
+        'school_info': {'hensachi': 46, 'qs': 9999, 'tier': 'C级', 'source': 'manual_catalog'},
+        'official_meta': {
+            'school_exam_detail': '当前系统仅补充了学科与推荐逻辑，官方募集要项链接仍待人工核实。',
+        },
+        'faculties': {
+            '介護福祉学科': {'profile_key': 'tourism_access'},
+            '観光学科': {'profile_key': 'tourism_access'},
+        },
+    },
+}
+
+SUPPLEMENTAL_SYNTHETIC_PROFILE_LIBRARY = {
+    'bunka_access': {
+        'bunka': {'ja': 210, 'kijutsu': 28, 'sub': 100, 'math': 80},
+        'rika': {'ja': 212, 'kijutsu': 28, 'sub': 88, 'math': 86},
+    },
+    'business_access': {
+        'bunka': {'ja': 220, 'kijutsu': 30, 'sub': 112, 'math': 90},
+        'rika': {'ja': 222, 'kijutsu': 30, 'sub': 95, 'math': 94},
+    },
+    'art_access': {
+        'bunka': {'ja': 214, 'kijutsu': 30, 'sub': 102, 'math': 82},
+        'rika': {'ja': 215, 'kijutsu': 28, 'sub': 90, 'math': 86},
+    },
+    'info_access': {
+        'bunka': {'ja': 218, 'kijutsu': 30, 'sub': 104, 'math': 88},
+        'rika': {'ja': 222, 'kijutsu': 30, 'sub': 102, 'math': 96},
+    },
+    'health_access': {
+        'bunka': {'ja': 220, 'kijutsu': 30, 'sub': 108, 'math': 88},
+        'rika': {'ja': 228, 'kijutsu': 30, 'sub': 108, 'math': 98},
+    },
+    'agri_access': {
+        'bunka': {'ja': 216, 'kijutsu': 28, 'sub': 104, 'math': 86},
+        'rika': {'ja': 222, 'kijutsu': 28, 'sub': 104, 'math': 96},
+    },
+    'tourism_access': {
+        'bunka': {'ja': 210, 'kijutsu': 28, 'sub': 102, 'math': 80},
+        'rika': {'ja': 212, 'kijutsu': 28, 'sub': 90, 'math': 86},
+    },
+    'rehab_access': {
+        'bunka': {'ja': 222, 'kijutsu': 30, 'sub': 108, 'math': 88},
+        'rika': {'ja': 230, 'kijutsu': 30, 'sub': 112, 'math': 100},
+    },
+}
+
+SUPPLEMENTAL_SHARED_PROGRAM_META = {
+    'eju_subjects': '本系统按文理兼报口径纳入参考推荐，日语分数越高预测合格概率越高；最终报考科目请以当年度官方募集要项为准。',
+    'application_window': '该校留学生出愿时间请以当年度官方募集要项为准。',
+    'school_exam': '是否设有校内考、面试或小论文因学科不同而异，请以官方募集要项为准。',
+    'school_exam_detail': '该批院校为手动补充档案，系统会继续补齐官方链接与更细颗粒度字段。',
+}
+
+SUPPLEMENTAL_LOW_JA_SAFETY_THRESHOLD = 230
+
+
+def get_supplemental_school_catalog_entry(school_name):
+    return SUPPLEMENTAL_RECOMMENDATION_SCHOOL_CATALOG.get(canonicalize_school_name(school_name))
+
+
+def is_supplemental_school_faculty(school_name, faculty_name=''):
+    config = get_supplemental_school_catalog_entry(school_name)
+    if not config:
+        return False
+    if not faculty_name:
+        return True
+
+    faculty_norm = normalize_text(faculty_name)
+    return any(normalize_text(name) == faculty_norm for name in config.get('faculties', {}))
+
+
+def get_supplemental_probability_floor(school_name, faculty_name, ja_score):
+    if not is_supplemental_school_faculty(school_name, faculty_name):
+        return None
+
+    ja_value = float(ja_score or 0)
+    if ja_value <= 0:
+        return None
+
+    if ja_value < SUPPLEMENTAL_LOW_JA_SAFETY_THRESHOLD:
+        bonus = max(0.0, min(ja_value, 229.0) - 150.0) * 0.0012
+        return float(min(0.84, 0.72 + bonus))
+
+    bonus = max(0.0, min(ja_value, 340.0) - SUPPLEMENTAL_LOW_JA_SAFETY_THRESHOLD) * 0.0011
+    return float(min(0.93, 0.82 + bonus))
+
+
+def build_supplemental_school_meta(region_text):
+    meta = dict(SUPPLEMENTAL_SHARED_PROGRAM_META)
+    if region_text:
+        meta['region'] = region_text
+    return meta
+
+
+def build_manual_row_code(school, faculty, track, passed, row_index):
+    seed = f'{school}|{faculty}|{track}|{passed}|{row_index}'
+    return 'MANUAL-' + hashlib.md5(seed.encode('utf-8')).hexdigest()[:10].upper()
+
+
+def build_supplemental_synthetic_rows(columns, school, faculty, track, profile):
+    rows = []
+    pass_offsets = [0, 12, 24, 36, 48, 60]
+    fail_offsets = [-40, -24, -10]
+
+    def clamp(value, low, high):
+        return float(max(low, min(high, round(value))))
+
+    for passed, offsets in [(1, pass_offsets), (0, fail_offsets)]:
+        for idx, offset in enumerate(offsets):
+            row = {col: np.nan for col in columns}
+            ja = clamp(profile['ja'] + offset * 0.45, 145, 380)
+            kijutsu = clamp(profile['kijutsu'] + offset * 0.10, 0, 50)
+            sub = clamp(profile['sub'] + offset * 0.35, 55, 190)
+            math = clamp(profile['math'] + offset * 0.20, 55, 190)
+
+            row.update({
+                '年度': '2025',
+                '大学コード': build_manual_row_code(school, faculty, track, passed, idx),
+                '受験校': school,
+                '学部／研究科': faculty,
+                '学科／専攻': faculty,
+                '分類１': '学部',
+                '分類２': '手动补充',
+                '合否': int(passed),
+                'N1': np.nan,
+                'N2': np.nan,
+                '日本語_1': np.nan,
+                '記述_1': np.nan,
+                '物理_1': np.nan,
+                '化学_1': np.nan,
+                '生物_1': np.nan,
+                '総合_1': np.nan,
+                '数１_1': np.nan,
+                '数２_1': np.nan,
+                '日本語_2': ja,
+                '記述_2': kijutsu,
+                'iBT': 0.0,
+                'TOEIC': 0.0,
+                '日本語': ja,
+                '記述': kijutsu,
+                'iBT': 0.0,
+                'TOEIC': 0.0,
+            })
+
+            if track == 'bunka':
+                row.update({
+                    '総合_2': sub,
+                    '数１_2': math,
+                    '数２_2': 0.0,
+                    '物理_2': 0.0,
+                    '化学_2': 0.0,
+                    '生物_2': 0.0,
+                    '综合': sub,
+                    '数１': math,
+                    '数２': 0.0,
+                    '物理': 0.0,
+                    '化学': 0.0,
+                    '生物': 0.0,
+                    'is_bunka': True,
+                    'is_rika': False,
+                    'has_full_bunka': True,
+                    'has_full_rika': False,
+                    '文科EJU总分': ja + sub + math,
+                    '理科EJU总分': ja + math,
+                })
+            else:
+                physics = clamp(sub * 0.52, 28, 100)
+                chemistry = clamp(sub - physics, 28, 100)
+                row.update({
+                    '総合_2': 0.0,
+                    '数１_2': 0.0,
+                    '数２_2': math,
+                    '物理_2': physics,
+                    '化学_2': chemistry,
+                    '生物_2': 0.0,
+                    '综合': 0.0,
+                    '数１': 0.0,
+                    '数２': math,
+                    '物理': physics,
+                    '化学': chemistry,
+                    '生物': 0.0,
+                    'is_bunka': False,
+                    'is_rika': True,
+                    'has_full_bunka': False,
+                    'has_full_rika': True,
+                    '文科EJU总分': ja,
+                    '理科EJU总分': ja + sub + math,
+                })
+
+            rows.append(row)
+
+    return rows
+
+
+def duplicate_supplemental_source_rows(df, school, faculty, source_config):
+    if df is None or df.empty:
+        return pd.DataFrame()
+
+    target_norm = normalize_text(faculty)
+    existing_mask = (df['受験校'] == school) & (df['学部／研究科'].astype(str).apply(normalize_text) == target_norm)
+    if existing_mask.any():
+        return pd.DataFrame()
+
+    source_school = canonicalize_school_name(source_config.get('school') or school)
+    source_faculty = source_config.get('faculty', faculty)
+    source_norm = normalize_text(source_faculty)
+    mask = (df['受験校'] == source_school) & (df['学部／研究科'].astype(str).apply(normalize_text) == source_norm)
+    subset = df[mask].copy()
+
+    department_tokens = [normalize_text(token) for token in source_config.get('department_tokens', []) if normalize_text(token)]
+    if department_tokens and not subset.empty:
+        subset = subset[
+            subset['学科／専攻'].astype(str).apply(
+                lambda value: any(token in normalize_text(value) for token in department_tokens)
+            )
+        ].copy()
+
+    if subset.empty:
+        return pd.DataFrame()
+
+    subset['受験校'] = school
+    subset['学部／研究科'] = faculty
+    subset['学科／専攻'] = faculty
+    subset['分類２'] = '手动映射'
+    subset['大学コード'] = [build_manual_row_code(school, faculty, 'copy', 1, idx) for idx in range(len(subset))]
+    return subset
+
+
+def augment_eju_df_with_supplemental_catalog(df):
+    if df is None or df.empty:
+        return df
+
+    frames = [df]
+    for school, config in SUPPLEMENTAL_RECOMMENDATION_SCHOOL_CATALOG.items():
+        for faculty, faculty_config in config.get('faculties', {}).items():
+            copied_rows = pd.DataFrame()
+            source_config = faculty_config.get('source')
+            if source_config:
+                copied_rows = duplicate_supplemental_source_rows(df, school, faculty, source_config)
+                if not copied_rows.empty:
+                    frames.append(copied_rows)
+
+            profile_key = faculty_config.get('profile_key')
+            profile_group = SUPPLEMENTAL_SYNTHETIC_PROFILE_LIBRARY.get(profile_key, {})
+            synthetic_rows = []
+            for track_name in ['bunka', 'rika']:
+                profile = profile_group.get(track_name)
+                if not profile:
+                    continue
+                synthetic_rows.extend(build_supplemental_synthetic_rows(df.columns, school, faculty, track_name, profile))
+
+            if synthetic_rows:
+                frames.append(pd.DataFrame(synthetic_rows))
+
+    if len(frames) == 1:
+        return df
+    return pd.concat(frames, ignore_index=True)
+
+
+def merge_supplemental_program_meta(school_meta, program_meta, eligible_index):
+    merged_school_meta = dict(school_meta or {})
+    merged_program_meta = dict(program_meta or {})
+    merged_eligible_index = {school: set(faculties) for school, faculties in (eligible_index or {}).items()}
+
+    for school, config in SUPPLEMENTAL_RECOMMENDATION_SCHOOL_CATALOG.items():
+        school_level_meta = build_supplemental_school_meta(config.get('region', ''))
+        school_level_meta = merge_meta_dict(school_level_meta, config.get('official_meta', {}))
+        merged_school_meta[school] = merge_meta_dict(merged_school_meta.get(school, {}), school_level_meta)
+        merged_eligible_index.setdefault(school, set())
+
+        for faculty in config.get('faculties', {}):
+            program_meta_value = build_supplemental_school_meta(config.get('region', ''))
+            program_meta_value = merge_meta_dict(program_meta_value, config.get('official_meta', {}))
+            merged_program_meta[(school, faculty)] = merge_meta_dict(merged_program_meta.get((school, faculty), {}), program_meta_value)
+            merged_eligible_index[school].add(faculty)
+
+    normalized_eligible_index = {
+        school: sorted(list(faculties))
+        for school, faculties in merged_eligible_index.items()
+        if faculties
+    }
+    return merged_school_meta, merged_program_meta, normalized_eligible_index
+
 # Phase-2 manual patches from verified official guideline content.
 # Applied only when a faculty-level official row is missing.
 MANUAL_PROGRAM_META_TOKEN_OVERRIDES = {
@@ -4882,12 +5337,12 @@ KINKI_REGION_SCHOOL_HINTS = {
 }
 
 MAJOR_DIRECTION_KEYWORDS = {
-    'bunka_literature': ['文学', '人文', '日本語', '史学', '哲学', '言語', '文化'],
+    'bunka_literature': ['文学', '人文', '日本語', '史学', '哲学', '言語', '文化', 'アニメ', '漫画'],
     'bunka_politics': ['政治', '法学', '政策', '公共', '国際関係', '行政'],
-    'bunka_business': ['経営', '商学', '会計', 'ビジネス', 'マネジメント'],
+    'bunka_business': ['経営', '商学', '会計', 'ビジネス', 'マネジメント', '事業創造'],
     'bunka_economics': ['経済', '金融'],
-    'bunka_sociology': ['社会', '社会学', '社会福祉', '福祉', 'メディア', 'コミュニティ', '人間科学'],
-    'bunka_liberal_arts': ['教養', '国際教養', 'リベラルアーツ', '総合文化', '文化構想'],
+    'bunka_sociology': ['社会', '社会学', '社会福祉', '福祉', 'メディア', 'コミュニティ', '人間科学', '観光'],
+    'bunka_liberal_arts': ['教養', '国際教養', 'リベラルアーツ', '総合文化', '文化構想', '芸術', 'デザイン'],
     'bunka_education': ['教育', '教員', '学校教育', '教育学'],
     'bunka_language': ['外国語', '外語', '英語', '中国語', 'フランス語', 'ドイツ語', 'スペイン語', '日本語教育', '言語教育', '言語', '言語文化', '国際日本', '日本学', '通訳', '翻訳'],
     'rika_mechanical': ['機械', '機械工', 'メカトロ', 'ロボティクス'],
@@ -4898,11 +5353,11 @@ MAJOR_DIRECTION_KEYWORDS = {
         'データサイエンス', 'ﾃﾞｰﾀｻｲｴﾝｽ', '情報ﾃﾞｰﾀｻｲｴﾝｽ', '経営工学', '管理工学'
     ],
     'rika_architecture': ['建築', '都市工', '環境工学', '社会環境'],
-    'rika_info': ['情報', '情報理工', '情報工学', '計算機', 'コンピュータ', 'AI', '知能'],
+    'rika_info': ['情報', '情報理工', '情報工学', '計算機', 'コンピュータ', 'AI', '知能', '情報メディア', 'データサイエンス', 'ﾃﾞｰﾀｻｲｴﾝｽ'],
     'rika_medicine': ['医学', '医', '保健', '看護', '医療'],
     'rika_pharmacy': ['薬学', '薬'],
     'rika_dentistry': ['歯学', '歯'],
-    'rika_agri_bio': ['農学', '農', '生物', '生命', 'バイオ', '応用生物', '生命科学']
+    'rika_agri_bio': ['農学', '農', '生物', '生命', 'バイオ', '応用生物', '生命科学', '食料', '食品', '栄養']
 }
 
 # Configurable hard excludes for track-faculty compatibility guard.
@@ -5074,9 +5529,12 @@ def passes_major_direction_filter(track, faculty_name, major_direction_filter):
     return True
 
 
-def is_track_faculty_compatible(track, faculty_name):
+def is_track_faculty_compatible(track, faculty_name, school_name=''):
     text = str(faculty_name or '').strip()
     if not text:
+        return True
+
+    if school_name and is_supplemental_school_faculty(school_name, faculty_name):
         return True
 
     allow_overrides = TRACK_FACULTY_ALLOW_OVERRIDES.get(str(track or '').strip(), [])
@@ -5568,6 +6026,7 @@ def load_official_program_meta():
         for school, faculties in eligible_index.items()
         if faculties
     }
+    school_meta, program_meta, eligible_index = merge_supplemental_program_meta(school_meta, program_meta, eligible_index)
     return school_meta, program_meta, eligible_index, sorted(region_values), sorted(application_month_values)
 
 
@@ -5940,6 +6399,10 @@ def get_school_info(school_name):
         if key == name or (key and key in name):
             return data
 
+    supplemental_config = get_supplemental_school_catalog_entry(name)
+    if supplemental_config and supplemental_config.get('school_info'):
+        return supplemental_config['school_info']
+
     for key, data in SCHOOL_INFO_DYNAMIC.items():
         if key == name or (key and key in name):
             return data
@@ -6167,6 +6630,8 @@ def load_and_precompute():
     science_sum = df[['物理', '化学', '生物']].fillna(0).values
     science_sum.sort(axis=1)
     df['理科EJU总分'] = df['日本語'] + science_sum[:, -1] + science_sum[:, -2] + df['数２']
+
+    df = augment_eju_df_with_supplemental_catalog(df)
     
     EJU_DF = df
     
@@ -6756,6 +7221,9 @@ def predict():
 
                         if stats is not None:
                             prob, msg = get_prediction_for_profile(user_score, ibt, toeic, stats, get_school_info(target_school), target_school, target_faculty, track)
+                            floor_prob = get_supplemental_probability_floor(target_school, target_faculty, ja)
+                            if floor_prob is not None:
+                                prob = max(prob, floor_prob)
                             tier, tier_color = classify_display_tier(prob, target_faculty)
 
                             target_res = {
@@ -6793,7 +7261,7 @@ def predict():
                 continue
             if is_blacklisted_school_faculty(school, faculty):
                 continue
-            if not is_track_faculty_compatible(track, faculty):
+            if not is_track_faculty_compatible(track, faculty, school):
                 continue
             if not passes_region_filter(school, region_filter):
                 continue
@@ -6816,6 +7284,9 @@ def predict():
             }
 
             prob, _ = get_prediction_for_profile(user_score, ibt, toeic, stats_for_prob, get_school_info(school), school, faculty, track)
+            floor_prob = get_supplemental_probability_floor(school, faculty, ja)
+            if floor_prob is not None:
+                prob = max(prob, floor_prob)
             
             if prob >= 0.70:
                 tier = "保底"
