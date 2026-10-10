@@ -125,7 +125,7 @@ class AccountAccessTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;', html)
 
     def test_production_requires_secret_and_persistent_database_configuration(self):
-        with patch.dict(os.environ, {'RENDER': 'true'}, clear=True):
+        with patch.dict(os.environ, {'RENDER': 'true', 'AUTH_ENABLED': '1'}, clear=True):
             with self.assertRaisesRegex(RuntimeError, 'SECRET_KEY'):
                 init_auth(Flask('missing-secret'))
             app = Flask('missing-database')
@@ -137,7 +137,7 @@ class AccountAccessTests(unittest.TestCase):
         app = Flask('render-test', template_folder=str(Path(__file__).parent / 'templates'))
         app.config.update(SECRET_KEY='test-signing-key-that-is-long-enough',
                           AUTH_DATABASE_URL=self.app.config['AUTH_DATABASE_URL'])
-        with patch.dict(os.environ, {'RENDER': 'true'}, clear=True):
+        with patch.dict(os.environ, {'RENDER': 'true', 'AUTH_ENABLED': '1'}, clear=True):
             init_auth(app)
         client = app.test_client()
         response = client.get('/api/auth/me', base_url='https://platform.example')
@@ -150,6 +150,17 @@ class AccountAccessTests(unittest.TestCase):
                     data=dict(username='nobody', password='wrong-password', csrf_token=token))
         self.assertIn('192.0.2.1', app.extensions['login_attempts'])
         app.extensions['account_store'].engine.dispose()
+
+    def test_public_render_release_needs_no_credentials_and_exposes_no_accounts(self):
+        app = Flask('public-render')
+        with patch.dict(os.environ, {'RENDER': 'true'}, clear=True):
+            init_auth(app)
+        self.assertFalse(app.config['AUTH_ENABLED'])
+        self.assertNotIn('account_store', app.extensions)
+        client = app.test_client()
+        self.assertEqual(client.get('/healthz').status_code, 200)
+        for path in ['/login', '/admin/accounts', '/account/password', '/api/auth/me']:
+            self.assertEqual(client.get(path).status_code, 404)
 
 
 if __name__ == '__main__':

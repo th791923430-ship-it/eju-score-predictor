@@ -110,7 +110,17 @@ def init_auth(app):
     if production:
         # Render terminates HTTPS and forwards through its edge proxy.
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
-    app.config.setdefault('AUTH_ENABLED', True)
+    # Public Render release is intentional until persistent account storage is ready.
+    # Local development retains login; production enables it explicitly.
+    app.config.setdefault('AUTH_ENABLED', os.environ.get(
+        'AUTH_ENABLED', '0' if production else '1') == '1')
+    if not app.config['AUTH_ENABLED']:
+        @app.before_request
+        def public_release():
+            g.user = None
+
+        app.add_url_rule('/healthz', endpoint='public_health', view_func=health)
+        return
     secret = app.config.get('SECRET_KEY') or os.environ.get('SECRET_KEY')
     if not secret:
         if production:

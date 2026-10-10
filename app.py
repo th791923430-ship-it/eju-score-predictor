@@ -7141,9 +7141,12 @@ def build_target_school_detail(school, faculty, track):
 def home():
     with open(project_path('templates/index.html'), encoding='utf-8') as template:
         html = template.read()
+    if not app.config['AUTH_ENABLED']:
+        html = re.sub(r'<!-- Account toolbar -->.*?<!-- /Account toolbar -->', '', html, flags=re.S)
     account_name = escape(g.user['display_name']) if g.user else '本地测试'
     admin_link = '<a href="/admin/accounts">账号管理</a>' if g.user and g.user['role'] == 'admin' else ''
-    return Response(html.replace('__AUTH_CSRF_TOKEN__', csrf_token())
+    token = csrf_token() if app.config['AUTH_ENABLED'] else ''
+    return Response(html.replace('__AUTH_CSRF_TOKEN__', token)
                     .replace('__AUTH_ACCOUNT_NAME__', str(account_name))
                     .replace('__AUTH_ADMIN_LINK__', admin_link), mimetype='text/html')
 

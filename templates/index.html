@@ -102,12 +102,14 @@
             </div>
         </div>
     </header>
+    <!-- Account toolbar -->
     <div class="bg-white border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-end gap-4 text-sm text-slate-600">
         <span>__AUTH_ACCOUNT_NAME__</span>
         __AUTH_ADMIN_LINK__
         <a href="/account/password">修改密码</a>
         <form action="/logout" method="post"><input type="hidden" name="csrf_token" value="__AUTH_CSRF_TOKEN__"><button type="submit" class="text-indigo-700 font-bold">退出登录</button></form>
     </div>
+    <!-- /Account toolbar -->
 
 
     <!-- Main Content -->

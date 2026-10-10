@@ -1,5 +1,7 @@
 # 上线与管理员账号
 
+当前发布阶段：Render 上先公开最新数据与推荐功能，登录暂未启用，不需要账号数据库或付费升级。以后启用登录时，先配置持久存储及 `SECRET_KEY`，再设置 `AUTH_ENABLED=1` 并部署。未启用登录时不会注册登录或账号管理接口，也不会创建账号数据库。本地默认启用登录，便于继续开发。
+
 目标地址：`https://www.platform.xly-edu.com`。
 原 Render 服务：`https://eju-score-predictor.onrender.com`。
 原官网 `https://www.xly-edu.com` 保留。
@@ -40,6 +42,7 @@ Render 环境需配置下列环境变量，必须先配置再部署登录版本�
 
 | 名称 | 内容 |
 | --- | --- |
+| `AUTH_ENABLED` | 后续上线登录时设置为 `1`；当前公开推荐版本保持未设置或 `0`。 |
 | `SECRET_KEY` | 随机、长期固定的签名密钥，建议至少32个字符；使用控制台的 Generate 功能或安全生成器。 |
 | `DATABASE_URL` | 现有持久 PostgreSQL 数据库连接串，优先使用同区域的 Internal Database URL。 |
 
