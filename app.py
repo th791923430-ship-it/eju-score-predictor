@@ -4,15 +4,66 @@ import numpy as np
 import re
 import hashlib
 from urllib.parse import urlparse
-from flask import Flask, send_file, request, jsonify
+from flask import Flask, send_file, request, jsonify, g, Response
+from markupsafe import escape
+from auth import init_auth, csrf_token
 
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_PRECOMPUTED = False
+init_auth(app)
 
 
 def project_path(*parts):
     return os.path.join(BASE_DIR, *parts)
+
+
+# Admissions catalog rules are separate from the historical outcome dataset.
+OEJU_SAFETY_CATALOG = pd.read_csv(
+    project_path('oeju_safety_catalog.csv'), keep_default_na=False
+).to_dict('records')
+
+
+def build_oeju_safety_recommendations(track, user_score, ja, region_filter,
+                                     school_type_filter, major_filter, month_filter):
+    if user_score >= 550 and ja >= 230:
+        return []
+    # Intake months in the PDF are not application deadlines.
+    if str(month_filter or 'all') not in {'', 'all'}:
+        return []
+    if str(school_type_filter or 'all') == 'public':
+        return []
+    regions = region_filter if isinstance(region_filter, list) else [region_filter]
+    regions = [REGION_VALUE_ALIASES.get(str(r), str(r)) for r in regions if r and r != 'all']
+    result = []
+    for entry in OEJU_SAFETY_CATALOG:
+        school = entry['school']
+        if is_excluded_school(school):
+            continue
+        bucket = infer_region_bucket_from_text(entry['region'])
+        if regions and not any(r == bucket or (r == 'capital_hokkaido' and bucket in {'capital', 'hokkaido'}) for r in regions):
+            continue
+        faculties = [f for f in entry['faculties'].split('|')
+                     if is_track_faculty_compatible(track, f, school)
+                     and passes_major_direction_filter(track, f, major_filter)]
+        if not faculties:
+            continue
+        result.append({
+            'school': school, 'faculty': 'OEJU条件保底',
+            'faculty_display': '、'.join(faculties),
+            'catalog_faculties': faculties,
+            'recommendation_basis': 'oeju_n2_rule',
+            'probability': None, 'median_score': None, 'total_records': 0,
+            'tier': '保底', 'tier_sort': 2,
+            'school_type': '私立', 'school_rank': 'N2条件保底',
+            'condition_note': '具备N2或表中认可的同等日语能力，可作为低分段保底候选；仍需满足对应专业的校内考及其他要求。',
+            'admission_requirements': entry['入学要求'],
+            'programs_and_tuition': entry['专业与学费'],
+            'intake': entry['开学时间'],
+            'source': entry['来源文件'], 'source_page': int(entry['来源页码']),
+            'application_window': '',
+        })
+    return result
 
 PROBABILITY_CAP = 0.99
 
@@ -7088,7 +7139,13 @@ def build_target_school_detail(school, faculty, track):
 
 @app.route('/')
 def home():
-    return send_file('templates/index.html')
+    with open(project_path('templates/index.html'), encoding='utf-8') as template:
+        html = template.read()
+    account_name = escape(g.user['display_name']) if g.user else '本地测试'
+    admin_link = '<a href="/admin/accounts">账号管理</a>' if g.user and g.user['role'] == 'admin' else ''
+    return Response(html.replace('__AUTH_CSRF_TOKEN__', csrf_token())
+                    .replace('__AUTH_ACCOUNT_NAME__', str(account_name))
+                    .replace('__AUTH_ADMIN_LINK__', admin_link), mimetype='text/html')
 
 @app.route('/api/schools', methods=['GET'])
 def get_schools():
@@ -7347,6 +7404,18 @@ def predict():
     safety, match, challenger = rebalance_tiers_by_hensachi(safety, match, challenger)
     safety, match, challenger = enforce_medical_hierarchy_buckets(safety, match, challenger)
     safety, match, challenger = enforce_probability_bucket_boundaries(safety, match, challenger)
+
+    catalog_safety = build_oeju_safety_recommendations(
+        track, user_score, ja, region_filter, school_type_filter,
+        major_direction_filter, application_month_filter)
+    # One catalog card covers the listed programs; keep unlisted programs statistical.
+    covered = {(item['school'], normalize_text(f)) for item in catalog_safety
+               for f in item['catalog_faculties']}
+    def keep_historical(item):
+        return (item['school'], normalize_text(item['faculty'])) not in covered
+    safety = catalog_safety + [item for item in safety if keep_historical(item)]
+    match = [item for item in match if keep_historical(item)]
+    challenger = [item for item in challenger if keep_historical(item)]
     
     return jsonify({
         'user_score': user_score,
@@ -7363,7 +7432,7 @@ def predict():
             'safety': safety[:80],
             'match': match[:80],
             'challenger': challenger[:80],
-            'total_found': len(recommendations)
+            'total_found': len(safety) + len(match) + len(challenger)
         }
     })
 

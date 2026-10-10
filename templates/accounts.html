@@ -1,0 +1,29 @@
+{% extends 'auth_base.html' %}
+{% block title %}学生账号管理{% endblock %}
+{% block content %}
+<h1>学生账号管理</h1>
+<p>创建账号后，将账号和初始密码交给学生；学生首次登录需设置自己的密码。</p>
+<section class="panel">
+  <h2>创建学生账号</h2>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="create">
+    <label for="name">学生姓名</label><input id="name" name="display_name" maxlength="80" required>
+    <label for="username">账号</label><input id="username" name="username" minlength="3" maxlength="64" pattern="[a-zA-Z0-9][a-zA-Z0-9_.@\-]{2,63}" autocomplete="off" required>
+    <p class="muted">字母、数字或 _.@-，例如 student001。账号不区分大小写。</p>
+    <label for="password">初始密码</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+    <button style="margin-top:20px">创建账号</button>
+  </form>
+</section>
+<section class="panel scroll">
+  <h2>学生账号（{{ students|length }}）</h2>
+  <table><thead><tr><th>姓名／账号</th><th>状态</th><th>操作</th></tr></thead><tbody>
+  {% for student in students %}
+  <tr><td><strong>{{ student.display_name }}</strong><br><span class="muted">{{ student.username }}</span></td>
+    <td>{{ '已启用' if student.active else '已停用' }}{% if student.must_change_password %}<br><span class="muted">需更换初始密码</span>{% endif %}</td>
+    <td><div class="actions"><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="user_id" value="{{ student.id }}"><input type="hidden" name="action" value="toggle"><button class="secondary">{{ '停用' if student.active else '启用' }}</button></form>
+    <details><summary>重置密码</summary><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="user_id" value="{{ student.id }}"><input type="hidden" name="action" value="reset"><label>新初始密码<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><button>重置并退出旧登录</button></form></details></div></td>
+  </tr>
+  {% else %}<tr><td colspan="3">暂无学生账号，请先创建。</td></tr>{% endfor %}
+  </tbody></table>
+</section>
+{% endblock %}

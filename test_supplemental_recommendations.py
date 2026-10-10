@@ -6,6 +6,7 @@ import app as app_module
 class SupplementalRecommendationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        app_module.app.config['AUTH_ENABLED'] = False
         app_module.load_and_precompute()
         app_module.app.testing = True
         cls.client = app_module.app.test_client()
@@ -47,7 +48,8 @@ class SupplementalRecommendationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         data = response.get_json()
-        safety_pairs = {(item['school'], item['faculty_display']) for item in data['recommendations']['safety']}
+        safety_pairs = {(item['school'], faculty) for item in data['recommendations']['safety']
+                        for faculty in item.get('catalog_faculties', [item['faculty_display']])}
         self.assertIn(('開志専門職大学', 'アニメ・漫画学部'), safety_pairs)
         self.assertIn(('新潟医療福祉大学', '健康スポーツ学科'), safety_pairs)
         self.assertIn(('おたる国際福祉観光専修学院', '観光学科'), safety_pairs)
@@ -112,7 +114,8 @@ class SupplementalRecommendationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
         buckets = data['recommendations']['safety'] + data['recommendations']['match'] + data['recommendations']['challenger']
-        pairs = {(item['school'], item['faculty_display']) for item in buckets}
+        pairs = {(item['school'], faculty) for item in buckets
+                 for faculty in item.get('catalog_faculties', [item['faculty_display']])}
         self.assertIn(('開志専門職大学', '情報学部'), pairs)
         self.assertIn(('新潟医療福祉大学', '健康データサイエンス学科'), pairs)
 

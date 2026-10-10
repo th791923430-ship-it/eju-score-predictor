@@ -1,0 +1,15 @@
+{% extends 'auth_base.html' %}
+{% block title %}登录{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <h1>登录升学推荐系统</h1>
+  <p>使用老师为你创建的账号，查看院校推荐与目标分数。</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">账号</label><input id="username" name="username" autocomplete="username" maxlength="64" required autofocus>
+    <label for="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+    <button style="width:100%;margin-top:24px">登录</button>
+  </form>
+  <p class="muted">没有账号或忘记密码？请联系老师创建账号或重置密码。</p>
+</section>
+{% endblock %}

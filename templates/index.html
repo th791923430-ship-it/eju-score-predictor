@@ -1,6 +1,31 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <meta name="csrf-token" content="__AUTH_CSRF_TOKEN__">
+    <script>
+        const platformFetch = window.fetch.bind(window);
+        window.fetch = async (input, options = {}) => {
+            const destination = new URL(typeof input === 'string' ? input : input.url, location.href);
+            const sameOrigin = destination.origin === location.origin;
+            const method = (options.method || input.method || 'GET').toUpperCase();
+            if (sameOrigin && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+                const headers = new Headers(options.headers || input.headers);
+                headers.set('X-CSRF-Token', document.querySelector('meta[name="csrf-token"]').content);
+                options = { ...options, headers };
+            }
+            const response = await platformFetch(input, options);
+            if (sameOrigin && response.status === 401) {
+                location.assign('/login');
+                throw new Error('请先登录');
+            }
+            if (sameOrigin && response.status === 403) {
+                const result = await response.clone().json().catch(() => ({}));
+                if (result.error === 'password_change_required') location.assign('/account/password');
+                if (result.error === 'csrf_failed') location.reload();
+            }
+            return response;
+        };
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新领域理工塾 EJU留考合格院校分数预测评估系统</title>
@@ -60,7 +85,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-black text-indigo-900 tracking-wide">EJU留考合格院校分数预测评估系统</h1>
-                <p class="text-xs text-slate-500 font-bold mt-0.5">基于 79,898 条真实历史录取数据构建</p>
+                <p class="text-xs text-slate-500 font-bold mt-0.5">基于 93,965 条真实历史录取数据构建</p>
             </div>
         </div>
         <div class="hidden md:flex items-center space-x-6 text-sm">
@@ -73,10 +98,17 @@
                 <span>覆盖专业: 2,216个</span>
             </div>
             <div class="bg-slate-100 text-slate-600 font-bold px-3 py-1.5 rounded-md text-xs border border-slate-200">
-                数据周期: 2017 - 2025年
+                数据周期: 2017 - 2026年
             </div>
         </div>
     </header>
+    <div class="bg-white border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-end gap-4 text-sm text-slate-600">
+        <span>__AUTH_ACCOUNT_NAME__</span>
+        __AUTH_ADMIN_LINK__
+        <a href="/account/password">修改密码</a>
+        <form action="/logout" method="post"><input type="hidden" name="csrf_token" value="__AUTH_CSRF_TOKEN__"><button type="submit" class="text-indigo-700 font-bold">退出登录</button></form>
+    </div>
+
 
     <!-- Main Content -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -452,17 +484,26 @@
                             </div>
                             <div v-for="item in results.safety" :key="item.school+item.faculty" 
                                  class="bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-lg p-3 transition cursor-pointer"
-                                 @click="selectSchoolFromRecommend(item.school, item.faculty)">
+                                 @click="item.recommendation_basis === 'oeju_n2_rule' ? item.expanded = !item.expanded : selectSchoolFromRecommend(item.school, item.faculty)">
                                 <div class="flex justify-between items-start">
                                     <h4 class="font-bold text-sm text-slate-900">{{ item.school }}</h4>
-                                    <span class="text-xs font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ (item.probability * 100).toFixed(0) }}%</span>
+                                    <span class="text-xs font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">{{ item.recommendation_basis === 'oeju_n2_rule' ? 'N2条件保底' : (item.probability * 100).toFixed(0) + '%' }}</span>
                                 </div>
                                 <p class="text-xs text-slate-600 mt-1">{{ item.faculty_display || item.faculty }}</p>
+                                <p v-if="item.condition_note" class="text-[11px] text-emerald-800 mt-2">{{ item.condition_note }}</p>
+                                <div v-if="item.recommendation_basis === 'oeju_n2_rule'" class="text-[11px] text-slate-500 mt-2">
+                                    <p>开学时间：{{ item.intake }} · 点击展开招生信息</p>
+                                    <div v-if="item.expanded" class="mt-2 space-y-2">
+                                        <p class="whitespace-pre-line">入学要求：{{ item.admission_requirements }}</p>
+                                        <p class="whitespace-pre-line">专业与学费（资料原文）：{{ item.programs_and_tuition }}</p>
+                                        <p>来源：{{ item.source }} 第{{ item.source_page }}页（正文Ver.2604）</p>
+                                    </div>
+                                </div>
                                 <p v-if="item.is_high_talent_bonus_school" class="text-[11px] text-sky-700 mt-1 font-semibold">高度人才加分校</p>
                                 <p v-if="item.application_window" class="text-[11px] text-slate-500 mt-1">参考出愿时间：{{ item.application_window }}</p>
                                 <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-200/50 text-[10px] text-slate-400">
                                     <span>{{ item.school_rank }} | {{ item.school_type }}</span>
-                                    <span>历史中位数: {{ item.median_score }}分</span>
+                                    <span v-if="item.recommendation_basis === 'oeju_n2_rule'">招生条件参考</span><span v-else>历史中位数: {{ item.median_score }}分</span>
                                 </div>
                             </div>
                         </div>
@@ -1050,7 +1091,7 @@
     <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 py-6 text-center text-xs border-t border-slate-800">
         <p>© 2026 新领域理工塾 EJU留考合格院校分数预测评估系统. 保留所有权利。</p>
-        <p class="mt-1 text-slate-500">所有录取概率均基于近 8 万条真实录取结果进行统计估算，仅供择校参考。</p>
+        <p class="mt-1 text-slate-500">所有录取概率均基于近 9.4 万条真实录取结果进行统计估算，仅供择校参考。</p>
     </footer>
 </div>
 

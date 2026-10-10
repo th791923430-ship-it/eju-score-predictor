@@ -125,6 +125,10 @@ def clean_and_merge():
     # Load 2025
     df25 = pd.read_excel('2025進学調査（そうがく社）.xlsx', header=3)
     df25['年度'] = 2025
+
+    # 2026 adds a blank title row; its field names match the 2025 format.
+    df26 = pd.read_excel('2026進学調査（そうがく社）.xlsx', header=4)
+    df26['年度'] = 2026
     
     # Rename 2025 columns to match 2023/2024
     rename_dict_25 = {
@@ -148,6 +152,7 @@ def clean_and_merge():
         '②数２': '数２_2',
     }
     df25 = df25.rename(columns=rename_dict_25)
+    df26 = df26.rename(columns=rename_dict_25)
     
     # Rename 2023/2024 columns to match standard
     rename_dict_23_24 = {
@@ -254,6 +259,7 @@ def clean_and_merge():
     df23 = df23[common_cols]
     df24 = df24[common_cols]
     df25 = df25[common_cols]
+    df26 = df26[common_cols]
     
     # Standardize '合否' column
     def std_pass_fail(val):
@@ -273,9 +279,10 @@ def clean_and_merge():
     df23['合否'] = df23['合否'].apply(std_pass_fail)
     df24['合否'] = df24['合否'].apply(std_pass_fail)
     df25['合否'] = df25['合否'].apply(std_pass_fail)
+    df26['合否'] = df26['合否'].apply(std_pass_fail)
     
     # Merge
-    merged_df = pd.concat([df17, df18, df20, df21, df23, df24, df25], ignore_index=True)
+    merged_df = pd.concat([df17, df18, df20, df21, df23, df24, df25, df26], ignore_index=True)
     
     # Drop rows where '合否' is NaN (since we can't use them for prediction training/matching)
     merged_df = merged_df.dropna(subset=['合否'])
@@ -326,6 +333,8 @@ def clean_and_merge():
     print("Merged shape after filtering invalid pass/fail:", merged_df.shape)
     print("Value counts for standardized '合否':")
     print(merged_df['合否'].value_counts(dropna=False))
+    print("Records by survey year:")
+    print(merged_df.groupby('年度').size())
     
     # Save to clean csv
     merged_df.to_csv('cleaned_eju_data.csv', index=False)

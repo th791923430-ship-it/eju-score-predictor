@@ -2,6 +2,7 @@ import app as app_module
 
 
 def test_target_setting_mode_returns_required_score_ranges():
+    app_module.app.config['AUTH_ENABLED'] = False
     app_module.load_and_precompute()
     app_module.app.testing = True
     client = app_module.app.test_client()
